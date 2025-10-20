@@ -21,8 +21,8 @@ input[readonly]{background:#f0f0f0}
 .delta{font-size:0.85rem;margin-top:4px}
 .delta.positive{color:#0a8f00}
 .delta.negative{color:#d70015}
-.slider-section{margin-top:28px;padding-top:18px;border-top:1px solid #e6e6ee;display:none}
-.slider-wrapper{position:relative;margin-top:40px;margin-bottom:40px;text-align:center}
+.slider-section{margin-top:28px;padding-top:18px;border-top:1px solid #e6e6ee}
+.slider-wrapper{position:relative;margin-top:20px;margin-bottom:20px;text-align:center}
 .slider-label-inline{font-weight:600;color:#0071e3;font-size:1rem}
 .slider-value{display:inline-block;margin-left:6px;font-weight:700;color:#0071e3;white-space:nowrap}
 input[type="range"]{width:100%;accent-color:#0071e3;cursor:pointer;margin-top:8px}
@@ -65,24 +65,24 @@ input[type="range"]{width:100%;accent-color:#0071e3;cursor:pointer;margin-top:8p
       <div class="slider-wrapper">
         <span class="slider-label-inline">Neuer Bon:</span>
         <span id="receiptValue" class="slider-value"></span>
-        <input id="sliderReceipt" type="range">
+        <input id="sliderReceipt" type="range" step="0.01">
       </div>
 
       <div class="slider-wrapper">
         <span class="slider-label-inline">Neue Conversion Rate:</span>
         <span id="crValue" class="slider-value"></span>
-        <input id="sliderCr" type="range">
+        <input id="sliderCr" type="range" step="0.01">
       </div>
 
       <div class="result-grid" style="grid-template-columns:1fr 1fr;gap:14px;margin-top:20px;">
         <div class="result-card">
           <p>Neuer Umsatz (Brutto)</p>
-          <h2 id="newRevenue">–</h2>
+          <h2 id="newRevenue">0 €</h2>
           <div id="deltaRevenue" class="delta"></div>
         </div>
         <div class="result-card alt">
           <p>Zusatz-Ertrag</p>
-          <h2 id="newProfit">–</h2>
+          <h2 id="newProfit">0 €</h2>
           <div id="deltaProfit" class="delta"></div>
         </div>
       </div>
@@ -92,7 +92,7 @@ input[type="range"]{width:100%;accent-color:#0071e3;cursor:pointer;margin-top:8p
 </div>
 
 <script>
-function fmt(num){return isFinite(num)?num.toLocaleString("de-DE",{minimumFractionDigits:2,maximumFractionDigits:2}):"–";}
+function fmt(num){return isFinite(num)?num.toLocaleString("de-DE",{minimumFractionDigits:2,maximumFractionDigits:2}):"0";}
 
 let base=null;
 
@@ -116,7 +116,7 @@ function updateBase(){
 
   const orders=totalRevenue/gross*cr;
   const profitPerOrder=gross/1.19-prod-ship;
-  const totalProfit=baseProfit>0?baseProfit:orders*profitPerOrder;
+  const totalProfit=baseProfit>0?baseProfit:0; // Basis: Zusatz-Ertrag = 0
 
   base={totalRevenue,cr,crPct,baseProfit,totalProfit,gross,prod,ship,orders};
 
@@ -131,7 +131,10 @@ function updateBase(){
   document.getElementById("receiptValue").textContent=fmt(gross);
   document.getElementById("crValue").textContent=fmt(crPct);
 
-  updateScenario();
+  document.getElementById("newRevenue").textContent="0 €";
+  document.getElementById("newProfit").textContent="0 €";
+  document.getElementById("deltaRevenue").textContent="";
+  document.getElementById("deltaProfit").textContent="";
 }
 
 function updateScenario(){
