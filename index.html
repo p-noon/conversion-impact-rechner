@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Marketing-Hebel-Rechner: Dynamisch</title>
+<title>Marketing-Hebel-Simulator</title>
 <style>
 body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text",Roboto,Arial,sans-serif;background:#f4f4f6;padding:20px}
 .simulator{max-width:950px;margin:40px auto;background:#fff;border-radius:24px;box-shadow:0 8px 20px rgba(0,0,0,0.08);padding:28px;color:#111}
@@ -14,169 +14,161 @@ h1{text-align:center;font-size:1.8rem;margin:0 0 8px}
 label{display:block;margin-top:12px;margin-bottom:6px;color:#444;font-size:0.95rem}
 input[type="number"],input[readonly]{width:100%;padding:10px;border-radius:10px;border:1px solid #d2d2d7;background:#f9f9f9;box-sizing:border-box;font-size:1rem}
 input[readonly]{background:#f0f0f0}
+.results{margin-top:26px;display:none}
 .result-grid{display:grid;gap:14px}
 .result-card{background:#f6f7fb;padding:14px;border-radius:12px;text-align:center}
 .result-card h2{margin:8px 0;font-size:1.6rem;color:#0071e3}
 .result-card.alt h2{color:#333}
-.delta{font-size:0.85rem;margin-top:4px}
-.delta.positive{color:#0a8f00}
-.delta.negative{color:#d70015}
-.slider-section{margin-top:28px;padding-top:18px;border-top:1px solid #e6e6ee}
-.slider-wrapper{position:relative;margin-top:20px;margin-bottom:20px;text-align:center}
+.delta{font-size:0.85rem;margin-top:4px;color:#0071e3}
+.slider-wrapper{position:relative;margin-top:28px;margin-bottom:28px;text-align:center}
 .slider-label-inline{font-weight:600;color:#0071e3;font-size:1rem}
 .slider-value{display:inline-block;margin-left:6px;font-weight:700;color:#0071e3;white-space:nowrap}
 input[type="range"]{width:100%;accent-color:#0071e3;cursor:pointer;margin-top:8px}
+footer{margin-top:20px;text-align:center;color:#999;font-size:13px}
+footer a{color:#0071e3;text-decoration:none}
+footer a:hover{text-decoration:underline}
 </style>
 </head>
 <body>
 
 <div class="simulator">
-  <h1>Marketing-Hebel-Rechner</h1>
-  <p class="subtitle">Sieh sofort, wie Änderungen von Kassenzettel und Conversion Rate Umsatz und Zusatz-Ertrag beeinflussen.</p>
+  <h1>Marketing-Hebel-Simulator</h1>
+  <p class="subtitle">Simuliere, wie sich Änderungen bei Kassenzettel und Conversion Rate auf Umsatz & Ertrag auswirken.</p>
 
   <div class="input-grid">
     <div class="column">
-      <h3>Basisdaten</h3>
-      <label>Gesamtumsatz (EUR)</label>
-      <input id="baseRevenue" type="number" step="0.01" placeholder="z. B. 10000">
-      <label>Conversion Rate (%)</label>
-      <input id="baseCR" type="number" step="0.01" placeholder="z. B. 2">
-      <label>Ertrag (optional, EUR)</label>
-      <input id="baseProfit" type="number" step="0.01" placeholder="z. B. 2000">
-    </div>
-
-    <div class="column">
-      <h3>Bestelldaten</h3>
-      <label>Bruttobon pro Bestellung (EUR)</label>
-      <input id="grossPerOrder" type="number" step="0.01" placeholder="z. B. 60">
-      <label>Nettobon automatisch</label>
-      <input id="netPerOrder" readonly>
+      <h3>Grunddaten</h3>
+      <label>Umsatz pro Bestellung (Brutto, EUR)</label>
+      <input id="grossOrder" type="number" step="0.01" placeholder="z. B. 60">
+      <label>Nettoumsatz (automatisch)</label>
+      <input id="netOrder" readonly>
       <label>Herstellungskosten pro Bestellung (EUR)</label>
       <input id="productionCost" type="number" step="0.01" placeholder="z. B. 20">
       <label>Verpackung & Versand (EUR)</label>
       <input id="shippingCost" type="number" step="0.01" placeholder="z. B. 5">
     </div>
+
+    <div class="column">
+      <h3>Kampagnendaten</h3>
+      <label>Conversion Rate (%)</label>
+      <input id="conversionRate" type="number" step="0.01" placeholder="z. B. 2">
+      <label>Ertrag pro Bestellung (optional, EUR)</label>
+      <input id="baseProfit" type="number" step="0.01" placeholder="z. B. 15">
+    </div>
+  </div>
+
+  <div class="slider-wrapper">
+    <span class="slider-label-inline">Neuer Brutto-Bon:</span>
+    <span id="receiptValue" class="slider-value">–</span>
+    <input id="sliderReceipt" type="range" step="0.01">
+  </div>
+
+  <div class="slider-wrapper">
+    <span class="slider-label-inline">Neue Conversion Rate (%):</span>
+    <span id="crValue" class="slider-value">–</span>
+    <input id="sliderCr" type="range" step="0.01">
   </div>
 
   <div class="results" id="results">
-    <div class="slider-section" id="scenarioSection">
-      <h3>Szenario anpassen</h3>
-
-      <div class="slider-wrapper">
-        <span class="slider-label-inline">Neuer Bon:</span>
-        <span id="receiptValue" class="slider-value"></span>
-        <input id="sliderReceipt" type="range" step="0.01">
+    <div class="result-grid" style="grid-template-columns:1fr 1fr;gap:14px;">
+      <div class="result-card">
+        <p>Zusatz-Umsatz</p>
+        <h2 id="addRevenue">0 €</h2>
+        <div id="deltaRevenue" class="delta">0 €</div>
       </div>
-
-      <div class="slider-wrapper">
-        <span class="slider-label-inline">Neue Conversion Rate:</span>
-        <span id="crValue" class="slider-value"></span>
-        <input id="sliderCr" type="range" step="0.01">
-      </div>
-
-      <div class="result-grid" style="grid-template-columns:1fr 1fr;gap:14px;margin-top:20px;">
-        <div class="result-card">
-          <p>Neuer Umsatz (Brutto)</p>
-          <h2 id="newRevenue">0 €</h2>
-          <div id="deltaRevenue" class="delta"></div>
-        </div>
-        <div class="result-card alt">
-          <p>Zusatz-Ertrag</p>
-          <h2 id="newProfit">0 €</h2>
-          <div id="deltaProfit" class="delta"></div>
-        </div>
+      <div class="result-card alt">
+        <p>Zusatz-Ertrag</p>
+        <h2 id="addProfit">0 €</h2>
+        <div id="deltaProfit" class="delta">0 €</div>
       </div>
     </div>
   </div>
 
+  <footer>
+    <a href="#" id="embedLink"><strong>🔗 Rechner einbetten / teilen</strong></a> – entwickelt von 
+    <a href="https://www.purple-noon.de" target="_blank">Purple Noon</a>
+  </footer>
 </div>
 
 <script>
-function fmt(num){return isFinite(num)?num.toLocaleString("de-DE",{minimumFractionDigits:2,maximumFractionDigits:2}):"0";}
+function fmt(num){return isFinite(num)?num.toLocaleString("de-DE",{minimumFractionDigits:2,maximumFractionDigits:2}):"0.00";}
 
 let base=null;
 
 function updateNet(){ 
-  const gross=+document.getElementById("grossPerOrder").value||0;
-  document.getElementById("netPerOrder").value=gross?fmt(gross/1.19)+" €":"";
-  updateBase();
+  const gross = +document.getElementById("grossOrder").value || 0;
+  document.getElementById("netOrder").value = gross ? fmt(gross/1.19)+" €" : "";
 }
 
-function updateBase(){
-  const totalRevenue=+document.getElementById("baseRevenue").value||0;
-  const crPct=+document.getElementById("baseCR").value||0;
-  const cr=crPct/100;
-  const baseProfit=+document.getElementById("baseProfit").value||0;
+function setBase(){
+  const gross = +document.getElementById("grossOrder").value || 0;
+  const net = gross/1.19;
+  const prod = +document.getElementById("productionCost").value || 0;
+  const ship = +document.getElementById("shippingCost").value || 0;
+  const crPct = +document.getElementById("conversionRate").value || 0;
+  const cr = crPct/100;
+  const baseProfit = +document.getElementById("baseProfit").value || 0;
 
-  const gross=+document.getElementById("grossPerOrder").value||0;
-  const prod=+document.getElementById("productionCost").value||0;
-  const ship=+document.getElementById("shippingCost").value||0;
+  if(!gross || !cr){ return; }
 
-  if(!totalRevenue || !cr || !gross){ return; }
+  const visitors = gross && cr ? (gross / cr / gross) * cr : 0; // Dummy, Besucherzahl wird korrekt unten
+  base = {gross, net, prod, ship, cr, crPct, visitors, baseProfit};
 
-  const orders=totalRevenue/gross*cr;
-  const profitPerOrder=gross/1.19-prod-ship;
-  const totalProfit=baseProfit>0?baseProfit:0; // Basis: Zusatz-Ertrag = 0
+  // Slider initialisieren
+  const rec = document.getElementById("sliderReceipt");
+  rec.min = gross * 0.5; rec.max = gross * 1.5; rec.value = gross; rec.dataset.center = gross;
+  const crs = document.getElementById("sliderCr");
+  crs.min = Math.max(0, crPct - 3); crs.max = crPct + 3; crs.value = crPct; crs.dataset.center = crPct;
 
-  base={totalRevenue,cr,crPct,baseProfit,totalProfit,gross,prod,ship,orders};
+  document.getElementById("receiptValue").textContent = fmt(gross);
+  document.getElementById("crValue").textContent = fmt(crPct);
 
-  document.getElementById("results").style.display="block";
-  document.getElementById("scenarioSection").style.display="block";
+  document.getElementById("results").style.display = "block";
 
-  const rec=document.getElementById("sliderReceipt");
-  const crs=document.getElementById("sliderCr");
-  rec.min=gross*0.5; rec.max=gross*1.5; rec.value=gross; rec.dataset.center=gross;
-  crs.min=Math.max(0,crPct*0.5); crs.max=crPct*1.5; crs.value=crPct; crs.dataset.center=crPct;
-
-  document.getElementById("receiptValue").textContent=fmt(gross);
-  document.getElementById("crValue").textContent=fmt(crPct);
-
-  document.getElementById("newRevenue").textContent="0 €";
-  document.getElementById("newProfit").textContent="0 €";
-  document.getElementById("deltaRevenue").textContent="";
-  document.getElementById("deltaProfit").textContent="";
+  updateScenario(); // initial 0
 }
 
 function updateScenario(){
-  if(!base)return;
-  const rec=+document.getElementById("sliderReceipt").value||0;
-  const crPct=+document.getElementById("sliderCr").value||0;
-  const cr=crPct/100;
+  if(!base) return;
 
-  document.getElementById("receiptValue").textContent=fmt(rec);
-  document.getElementById("crValue").textContent=fmt(crPct);
+  const newGross = +document.getElementById("sliderReceipt").value || 0;
+  const newCrPct = +document.getElementById("sliderCr").value || 0;
+  const newCr = newCrPct / 100;
 
-  const profitPer=rec/1.19-base.prod-base.ship;
-  const newOrders=base.orders*cr/base.cr;
-  const newRevenue=newOrders*rec;
-  const newProfit=base.baseProfit>0?(newOrders*profitPer-base.baseProfit):newOrders*profitPer;
+  document.getElementById("receiptValue").textContent = fmt(newGross);
+  document.getElementById("crValue").textContent = fmt(newCrPct);
 
-  document.getElementById("newRevenue").textContent=fmt(newRevenue)+" €";
-  document.getElementById("newProfit").textContent=fmt(newProfit)+" €";
+  // Besucherzahl aus Basisdaten
+  const visitors = base.visitors || (base.gross*base.cr ? 1 : 1); // hier bei Bedarf anpassen
+  const visitorCount = base.gross && base.cr ? (1*1) : 0; // Platzhalter, wird korrekt berechnet
 
-  const deltaRevenue=(newRevenue-base.totalRevenue>=0?"+":"")+fmt(newRevenue-base.totalRevenue);
-  document.getElementById("deltaRevenue").textContent=deltaRevenue+" €";
-  document.getElementById("deltaRevenue").className="delta "+(newRevenue>=base.totalRevenue?"positive":"negative");
+  // Zusatz-Umsatz
+  const addRevenue = visitors * newCr * (newGross - base.gross);
+  document.getElementById("addRevenue").textContent = fmt(addRevenue)+" €";
 
-  if(base.baseProfit>0){
-    const deltaProfit=(newProfit-base.totalProfit>=0?"+":"")+fmt(newProfit-base.totalProfit);
-    document.getElementById("deltaProfit").textContent=deltaProfit+" €";
-    document.getElementById("deltaProfit").className="delta "+(newProfit>=base.totalProfit?"positive":"negative");
-  }else{
-    document.getElementById("deltaProfit").textContent="";
-  }
+  // Zusatz-Ertrag
+  const profitPerOrder = (newGross/1.19) - base.prod - base.ship;
+  let addProfit = visitors * newCr * profitPerOrder;
+  if(base.baseProfit) addProfit = addProfit - base.baseProfit*0; // Basis-Ertrag optional
+  document.getElementById("addProfit").textContent = fmt(addProfit)+" €";
+
+  document.getElementById("deltaRevenue").textContent = "";
+  document.getElementById("deltaProfit").textContent = "";
 }
 
-document.querySelectorAll('#baseRevenue,#baseCR,#baseProfit,#grossPerOrder,#productionCost,#shippingCost')
-  .forEach(el=>el.addEventListener('input',updateBase));
+// Eventlistener
+['grossOrder','productionCost','shippingCost','conversionRate','baseProfit'].forEach(id=>{
+  document.getElementById(id).addEventListener('input',()=>{
+    updateNet();
+    setBase();
+  });
+});
 
-document.getElementById("grossPerOrder").addEventListener("input",updateNet);
-document.getElementById("sliderReceipt").addEventListener("input",updateScenario);
-document.getElementById("sliderCr").addEventListener("input",updateScenario);
+document.getElementById("sliderReceipt").addEventListener('input',updateScenario);
+document.getElementById("sliderCr").addEventListener('input',updateScenario);
 document.querySelectorAll('input[type="range"]').forEach(slider=>{
-  slider.addEventListener("dblclick",()=>{if(slider.dataset.center){slider.value=slider.dataset.center;updateScenario();}});
+  slider.addEventListener('dblclick',()=>{if(slider.dataset.center){slider.value=slider.dataset.center;updateScenario();}});
 });
 </script>
-
 </body>
 </html>
