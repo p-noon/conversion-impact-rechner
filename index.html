@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Conversion- & Bon-Impact-Rechner</title>
+<style>
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", Roboto, sans-serif;
+  background: #f4f4f6;
+  padding: 20px;
+  color: #1c1c1e;
+}
+.roas-calculator {
+  max-width: 900px;
+  margin: 40px auto;
+  background: #fff;
+  border-radius: 24px;
+  box-shadow: 0 8px 20px rgba(0,0,0,0.08);
+  padding: 32px;
+}
+h2 {
+  text-align: center;
+  font-size: 1.8rem;
+  margin-bottom: 6px;
+}
+.subtitle {
+  text-align: center;
+  color: #666;
+  margin-bottom: 24px;
+}
+.input-grid {
+  display: flex;
+  gap: 24px;
+  flex-wrap: wrap;
+  align-items: flex-start;
+}
+.column {
+  flex: 1;
+  min-width: 280px;
+}
+label {
+  font-size: 0.9rem;
+  color: #444;
+  display: block;
+  margin-bottom: 6px;
+  margin-top: 14px;
+}
+input[type="number"] {
+  padding: 10px;
+  border: 1px solid #d2d2d7;
+  border-radius: 10px;
+  font-size: 1rem;
+  background: #f9f9f9;
+  width: 100%;
+  box-sizing: border-box;
+  transition: all 0.2s;
+}
+input:focus {
+  outline: none;
+  border-color: #0071e3;
+  background: white;
+  box-shadow: 0 0 0 2px rgba(0,113,227,0.1);
+}
+.slider-group {
+  margin-top: 24px;
+}
+.slider-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+input[type="range"] {
+  width: 100%;
+}
+.slider-value {
+  width: 60px;
+  text-align: right;
+  font-weight: 600;
+}
+.results {
+  margin-top: 36px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+.result-card {
+  background: #f5f5f7;
+  border-radius: 16px;
+  padding: 20px;
+  text-align: center;
+  transition: background 0.3s;
+}
+.result-card h1 {
+  margin: 0;
+  font-size: 2rem;
+}
+.change {
+  font-size: 0.9rem;
+  margin-top: 6px;
+  font-weight: 500;
+}
+.change.positive { color: #28a745; }
+.change.negative { color: #e63946; }
+footer {
+  text-align: center;
+  margin-top: 20px;
+  font-size: 13px;
+  color: #999;
+}
+footer a {
+  color: #0071e3;
+  text-decoration: none;
+}
+footer a:hover {
+  text-decoration: underline;
+}
+</style>
+</head>
+<body>
+
+<div class="roas-calculator">
+  <h2>Conversion- & Bon-Impact-Rechner</h2>
+  <p class="subtitle">Simuliere, wie sich Änderungen der Conversion Rate oder Bonhöhe auf Umsatz und Ertrag auswirken.</p>
+
+  <div class="input-grid">
+    <!-- Grunddaten -->
+    <div class="column">
+      <h3>Grunddaten</h3>
+      <label>Bruttoumsatz pro Bestellung (€)</label>
+      <input id="revenueGross" type="number" placeholder="z. B. 59.50" oninput="updateNet()">
+      <label>Nettoumsatz (automatisch)</label>
+      <input id="revenueNet" type="number" readonly>
+      <label>Herstellungskosten (€)</label>
+      <input id="cost" type="number" placeholder="z. B. 15" oninput="recalc()">
+      <label>Versandkosten (€)</label>
+      <input id="shipping" type="number" placeholder="z. B. 5" oninput="recalc()">
+      <label>Conversion Rate (%)</label>
+      <input id="cr" type="number" placeholder="z. B. 2" oninput="recalc()">
+      <label>Jahresumsatz (€)</label>
+      <input id="annualRevenue" type="number" placeholder="z. B. 500000" oninput="recalc()">
+      <label>Gesamtertrag (optional, €)</label>
+      <input id="manualProfit" type="number" placeholder="leer lassen für automatische Berechnung" oninput="recalc()">
+    </div>
+
+    <!-- Slider -->
+    <div class="column slider-group">
+      <h3>Szenarien</h3>
+      <label>Neue Conversion Rate</label>
+      <div class="slider-row">
+        <input id="crSlider" type="range" min="-30" max="30" value="0" step="1">
+        <div class="slider-value" id="crVal">0%</div>
+      </div>
+
+      <label>Neuer Bon (Bruttoumsatz)</label>
+      <div class="slider-row">
+        <input id="bonSlider" type="range" min="-30" max="30" value="0" step="1">
+        <div class="slider-value" id="bonVal">0%</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Ergebnisse -->
+  <div class="results">
+    <div class="result-card">
+      <p><strong>Neuer Jahresumsatz</strong></p>
+      <h1 id="newRevenue">–</h1>
+      <div class="change" id="revChange">–</div>
+    </div>
+    <div class="result-card">
+      <p><strong>Neuer Ertrag</strong></p>
+      <h1 id="newProfit">–</h1>
+      <div class="change" id="profChange">–</div>
+    </div>
+  </div>
+
+  <footer>
+    entwickelt von <a href="https://www.purple-noon.de" target="_blank">Purple Noon</a>
+  </footer>
+</div>
+
+<script>
+function updateNet(){
+  const gross = +document.getElementById("revenueGross").value || 0;
+  document.getElementById("revenueNet").value = gross ? (gross / 1.19).toFixed(2) : "";
+  recalc();
+}
+
+function recalc(){
+  const revGross = +document.getElementById("revenueGross").value || 0;
+  const revNet = revGross / 1.19;
+  const cost = +document.getElementById("cost").value || 0;
+  const ship = +document.getElementById("shipping").value || 0;
+  const cr = (+document.getElementById("cr").value || 0) / 100;
+  const annualRev = +document.getElementById("annualRevenue").value || 0;
+  const manualProfit = +document.getElementById("manualProfit").value || null;
+
+  if (!annualRev || !cr || !revGross) {
+    document.getElementById("newRevenue").innerText = "–";
+    document.getElementById("revChange").innerText = "–";
+    document.getElementById("newProfit").innerText = "–";
+    document.getElementById("profChange").innerText = "–";
+    return;
+  }
+
+  const visitors = annualRev / (revGross * cr);
+  const margin = (revNet - cost - ship) / revNet;
+  const baseProfit = manualProfit ? manualProfit : annualRev * margin;
+
+  const crChange = +document.getElementById("crSlider").value / 100;
+  const bonChange = +document.getElementById("bonSlider").value / 100;
+
+  const newCR = cr * (1 + crChange);
+  const newAOV = revGross * (1 + bonChange);
+  const newRev = visitors * newAOV * newCR;
+  const newProf = manualProfit ? manualProfit * (newRev / annualRev) : newRev * margin;
+
+  const revDiff = newRev - annualRev;
+  const profDiff = newProf - baseProfit;
+  const revPerc = (revDiff / annualRev) * 100;
+  const profPerc = (profDiff / baseProfit) * 100;
+
+  document.getElementById("newRevenue").innerText = newRev.toLocaleString("de-DE", {maximumFractionDigits:0}) + " €";
+  document.getElementById("newProfit").innerText = newProf.toLocaleString("de-DE", {maximumFractionDigits:0}) + " €";
+
+  const revChangeEl = document.getElementById("revChange");
+  const profChangeEl = document.getElementById("profChange");
+
+  revChangeEl.innerText = `${revDiff >= 0 ? "+" : ""}${revDiff.toLocaleString("de-DE", {maximumFractionDigits:0})} € (${revPerc.toFixed(1)}%)`;
+  profChangeEl.innerText = `${profDiff >= 0 ? "+" : ""}${profDiff.toLocaleString("de-DE", {maximumFractionDigits:0})} € (${profPerc.toFixed(1)}%)`;
+
+  revChangeEl.className = "change " + (revDiff >= 0 ? "positive" : "negative");
+  profChangeEl.className = "change " + (profDiff >= 0 ? "positive" : "negative");
+}
+
+document.getElementById("crSlider").addEventListener("input", e => {
+  document.getElementById("crVal").innerText = e.target.value + "%";
+  recalc();
+});
+document.getElementById("bonSlider").addEventListener("input", e => {
+  document.getElementById("bonVal").innerText = e.target.value + "%";
+  recalc();
+});
+document.getElementById("crSlider").addEventListener("dblclick", e => { e.target.value = 0; document.getElementById("crVal").innerText = "0%"; recalc(); });
+document.getElementById("bonSlider").addEventListener("dblclick", e => { e.target.value = 0; document.getElementById("bonVal").innerText = "0%"; recalc(); });
+
+updateNet();
+recalc();
+</script>
+
+</body>
+</html>
