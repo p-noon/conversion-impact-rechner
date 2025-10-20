@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Conversion & Bon Simulator</title>
+<title>Marketing-Hebel-Rechner: Zusatz-Ertrag</title>
 <style>
 body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text",Roboto,Arial,sans-serif;background:#f4f4f6;padding:20px}
 .simulator{max-width:950px;margin:40px auto;background:#fff;border-radius:24px;box-shadow:0 8px 20px rgba(0,0,0,0.08);padding:28px;color:#111}
@@ -32,168 +32,162 @@ input[type="range"]{width:100%;accent-color:#0071e3;cursor:pointer;margin-top:8p
 footer{margin-top:20px;text-align:center;color:#999;font-size:13px}
 footer a{color:#0071e3;text-decoration:none}
 footer a:hover{text-decoration:underline}
-.overlay{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);display:none;justify-content:center;align-items:center;z-index:999}
-.overlay-content{background:#fff;padding:24px;border-radius:16px;width:90%;max-width:600px;box-shadow:0 10px 30px rgba(0,0,0,0.2)}
-.overlay-content textarea{width:100%;height:120px;font-family:monospace;border-radius:8px;border:1px solid #ccc;padding:8px}
-.close-btn{background:#0071e3;color:white;border:none;padding:8px 16px;border-radius:8px;margin-top:12px;cursor:pointer}
-.close-btn:hover{background:#0a84ff}
 </style>
 </head>
 <body>
 
 <div class="simulator">
-  <h1>Conversion & Bon Simulator</h1>
-  <p class="subtitle">Simuliere die Auswirkungen von Bon & Conversion Rate auf Umsatz und optionalen Ertrag.</p>
+  <h1>Marketing-Hebel-Rechner</h1>
+  <p class="subtitle">Simuliere, wie Änderungen von Kassenzettel und Conversion Rate Umsatz und Zusatz-Ertrag beeinflussen.</p>
 
   <div class="input-grid">
     <div class="column">
-      <h3>Grunddaten</h3>
+      <h3>Basisdaten</h3>
       <label>Gesamtumsatz (EUR)</label>
-      <input id="totalRevenueInput" type="number" step="0.01" placeholder="z. B. 50000">
+      <input id="baseRevenue" type="number" step="0.01" placeholder="z. B. 10000">
       <label>Conversion Rate (%)</label>
-      <input id="conversionRateInput" type="number" step="0.01" placeholder="z. B. 2">
-      <label>Bon pro Bestellung (EUR)</label>
-      <input id="receiptInput" type="number" step="0.01" placeholder="z. B. 60">
+      <input id="baseCR" type="number" step="0.01" placeholder="z. B. 2">
+      <label>Ertrag (optional, EUR)</label>
+      <input id="baseProfit" type="number" step="0.01" placeholder="z. B. 2000">
+    </div>
+
+    <div class="column">
+      <h3>Bestelldaten</h3>
+      <label>Bruttobon pro Bestellung (EUR)</label>
+      <input id="grossPerOrder" type="number" step="0.01" placeholder="z. B. 60">
+      <label>Nettobon automatisch</label>
+      <input id="netPerOrder" readonly>
       <label>Herstellungskosten pro Bestellung (EUR)</label>
-      <input id="productionCostInput" type="number" step="0.01" placeholder="z. B. 20">
+      <input id="productionCost" type="number" step="0.01" placeholder="z. B. 20">
       <label>Verpackung & Versand (EUR)</label>
-      <input id="shippingCostInput" type="number" step="0.01" placeholder="z. B. 5">
-      <label>Optional: Basis-Ertrag (EUR)</label>
-      <input id="baseProfitInput" type="number" step="0.01" placeholder="z. B. 10000">
+      <input id="shippingCost" type="number" step="0.01" placeholder="z. B. 5">
     </div>
   </div>
 
   <button class="button-main" id="calcButton">Berechnen</button>
 
-  <div class="slider-section" id="scenarioSection">
-    <h3>Szenario anpassen</h3>
-    <div class="slider-wrapper">
-      <span class="slider-label-inline">Neuer Bon:</span>
-      <span id="receiptValue" class="slider-value"></span>
-      <input id="sliderReceipt" type="range" min="0" max="200" step="0.1">
-    </div>
-    <div class="slider-wrapper">
-      <span class="slider-label-inline">Neue Conversion Rate:</span>
-      <span id="crValue" class="slider-value"></span>
-      <input id="sliderCr" type="range" min="0" max="10" step="0.01">
-    </div>
+  <div class="results" id="results">
+    <div class="slider-section" id="scenarioSection">
+      <h3>Szenario anpassen</h3>
 
-    <div class="result-grid" style="grid-template-columns:1fr 1fr;gap:14px;margin-top:20px;">
-      <div class="result-card">
-        <p>Neuer Umsatz</p>
-        <h2 id="newRevenue">–</h2>
-        <div id="deltaRevenue" class="delta"></div>
+      <div class="slider-wrapper">
+        <span class="slider-label-inline">Neuer Bon:</span>
+        <span id="receiptValue" class="slider-value"></span>
+        <input id="sliderReceipt" type="range">
       </div>
-      <div class="result-card alt">
-        <p>Zusatz-Ertrag</p>
-        <h2 id="newProfit">–</h2>
-        <div id="deltaProfit" class="delta"></div>
+
+      <div class="slider-wrapper">
+        <span class="slider-label-inline">Neue Conversion Rate:</span>
+        <span id="crValue" class="slider-value"></span>
+        <input id="sliderCr" type="range">
+      </div>
+
+      <div class="result-grid" style="grid-template-columns:1fr 1fr;gap:14px;margin-top:20px;">
+        <div class="result-card">
+          <p>Neuer Umsatz (Brutto)</p>
+          <h2 id="newRevenue">–</h2>
+          <div id="deltaRevenue" class="delta"></div>
+        </div>
+        <div class="result-card alt">
+          <p>Zusatz-Ertrag</p>
+          <h2 id="newProfit">–</h2>
+          <div id="deltaProfit" class="delta"></div>
+        </div>
       </div>
     </div>
   </div>
 
-  <footer>
-    <a href="#" id="embedLink"><strong>🔗 Rechner einbetten / teilen</strong></a> – entwickelt von 
-    <a href="https://www.purple-noon.de" target="_blank">Purple Noon</a>
-  </footer>
-</div>
-
-<div class="overlay" id="overlay">
-  <div class="overlay-content">
-    <h3>Einbettungscode:</h3>
-    <textarea readonly><iframe src="https://p-noon.github.io/marketing-hebel-rechner/" width="100%" height="950" style="border:none;"></iframe></textarea>
-    <button class="close-btn" id="closeOverlay">Schließen</button>
-  </div>
 </div>
 
 <script>
 function fmt(num){return isFinite(num)?num.toLocaleString("de-DE",{minimumFractionDigits:2,maximumFractionDigits:2}):"–";}
 
+function updateNet(){ 
+  const gross=+document.getElementById("grossPerOrder").value||0;
+  document.getElementById("netPerOrder").value=gross?fmt(gross/1.19)+" €":"";
+}
+
 let base=null;
 
 function resetScenario(){
+  document.getElementById("results").style.display="none";
   document.getElementById("scenarioSection").style.display="none";
   base=null;
 }
 
 function calcBase(){
-  const totalRevenue=+document.getElementById("totalRevenueInput").value||0;
-  const crPct=+document.getElementById("conversionRateInput").value||0;
+  const totalRevenue=+document.getElementById("baseRevenue").value||0;
+  const crPct=+document.getElementById("baseCR").value||0;
   const cr=crPct/100;
-  const receipt=+document.getElementById("receiptInput").value||0;
-  const prod=+document.getElementById("productionCostInput").value||0;
-  const ship=+document.getElementById("shippingCostInput").value||0;
-  const baseProfit=+document.getElementById("baseProfitInput").value||0;
+  const baseProfit=+document.getElementById("baseProfit").value||0;
 
-  if(!totalRevenue || !cr || !receipt){alert("Bitte Umsatz, Bon und Conversion Rate eingeben.");return;}
+  const gross=+document.getElementById("grossPerOrder").value||0;
+  const net=gross/1.19;
+  const prod=+document.getElementById("productionCost").value||0;
+  const ship=+document.getElementById("shippingCost").value||0;
 
-  const orders=totalRevenue/receipt;
-  const profitPerOrder=(receipt/1.19)-prod-ship;
-  const totalProfit=baseProfit || orders*profitPerOrder;
+  if(!totalRevenue || !cr){ alert("Bitte Umsatz und Conversion Rate eingeben."); return; }
 
-  base={totalRevenue,cr,crPct,receipt,prod,ship,orders,profitPerOrder,totalProfit};
+  const orders=totalRevenue/gross*cr;
+  const profitPerOrder=net-prod-ship;
+  const totalProfit=baseProfit>0?baseProfit:orders*profitPerOrder;
 
+  base={totalRevenue,cr,crPct,baseProfit,totalProfit,gross,net,prod,ship,orders};
+
+  document.getElementById("results").style.display="block";
   document.getElementById("scenarioSection").style.display="block";
 
-  const recSlider=document.getElementById("sliderReceipt");
-  const crSlider=document.getElementById("sliderCr");
-  recSlider.min=receipt*0.5; recSlider.max=receipt*1.5; recSlider.value=receipt; recSlider.dataset.center=receipt;
-  crSlider.min=crPct*0.5; crSlider.max=crPct*1.5; crSlider.value=crPct; crSlider.dataset.center=crPct;
+  const rec=document.getElementById("sliderReceipt");
+  const crs=document.getElementById("sliderCr");
+  rec.min=gross*0.5; rec.max=gross*1.5; rec.value=gross; rec.dataset.center=gross;
+  crs.min=Math.max(0,crPct*0.5); crs.max=crPct*1.5; crs.value=crPct; crs.dataset.center=crPct;
 
-  document.getElementById("receiptValue").textContent=fmt(receipt);
+  document.getElementById("receiptValue").textContent=fmt(gross);
   document.getElementById("crValue").textContent=fmt(crPct);
 
   updateScenario();
 }
 
 function updateScenario(){
-  if(!base) return;
-  const recSlider=document.getElementById("sliderReceipt");
-  const crSlider=document.getElementById("sliderCr");
-  const newReceipt=+recSlider.value||0;
-  const newCrPct=+crSlider.value||0;
-  const newCr=newCrPct/100;
+  if(!base)return;
+  const rec=+document.getElementById("sliderReceipt").value||0;
+  const crPct=+document.getElementById("sliderCr").value||0;
+  const cr=crPct/100;
 
-  document.getElementById("receiptValue").textContent=fmt(newReceipt);
-  document.getElementById("crValue").textContent=fmt(newCrPct);
+  document.getElementById("receiptValue").textContent=fmt(rec);
+  document.getElementById("crValue").textContent=fmt(crPct);
 
-  const newOrders=base.orders*(newCr/base.cr);
-  const newRevenue=newOrders*newReceipt;
-  const profitPer=(newReceipt/1.19)-base.prod-base.ship;
-  const newProfit=newOrders*profitPer;
+  const net=rec/1.19;
+  const profitPer=net-base.prod-base.ship;
+  const newOrders=base.orders*cr/base.cr;
+  const newRevenue=newOrders*rec;
+  const newProfit=base.baseProfit>0?(newOrders*profitPer-base.baseProfit):newOrders*profitPer;
 
   document.getElementById("newRevenue").textContent=fmt(newRevenue)+" €";
   document.getElementById("newProfit").textContent=fmt(newProfit)+" €";
 
-  // Delta Berechnung
-  const delta=(val,baseVal)=>((val-baseVal>=0?"+":"")+fmt(val-baseVal));
-  document.getElementById("deltaRevenue").textContent=delta(newRevenue,base.totalRevenue)+" €";
+  const deltaRevenue=(newRevenue-base.totalRevenue>=0?"+":"")+fmt(newRevenue-base.totalRevenue);
+  document.getElementById("deltaRevenue").textContent=deltaRevenue+" €";
   document.getElementById("deltaRevenue").className="delta "+(newRevenue>=base.totalRevenue?"positive":"negative");
 
-  if(base.totalProfit){ // Option A: Prozent nur wenn Basis-Ertrag eingegeben
-    const deltaP=newProfit-base.totalProfit;
-    const percent=((deltaP/base.totalProfit)*100).toFixed(1);
-    document.getElementById("deltaProfit").textContent=(deltaP>=0?"+":"")+fmt(deltaP)+" € ("+(deltaP>=0?"+":"")+percent+"%)";
+  if(base.baseProfit>0){
+    const deltaProfit=(newProfit-base.totalProfit>=0?"+":"")+fmt(newProfit-base.totalProfit);
+    document.getElementById("deltaProfit").textContent=deltaProfit+" €";
     document.getElementById("deltaProfit").className="delta "+(newProfit>=base.totalProfit?"positive":"negative");
-  } else {
+  }else{
     document.getElementById("deltaProfit").textContent="";
   }
-
-  document.getElementById("newProfit").style.color=newProfit<0?"#d70015":"#0071e3";
 }
 
 document.getElementById("calcButton").addEventListener("click",calcBase);
 document.getElementById("sliderReceipt").addEventListener("input",updateScenario);
 document.getElementById("sliderCr").addEventListener("input",updateScenario);
 document.querySelectorAll('input[type="range"]').forEach(slider=>{
-  slider.addEventListener("dblclick",()=>{if(slider.dataset.center){slider.value=slider.dataset.center;updateScenario();}});
+  slider.addEventListener("dblclick",()=>{if(slider.dataset.center){slider.value=slider.dataset.center;updateScenario();}}); 
 });
-document.querySelectorAll('#totalRevenueInput,#conversionRateInput,#receiptInput,#productionCostInput,#shippingCostInput,#baseProfitInput')
+document.querySelectorAll('#baseRevenue,#baseCR,#baseProfit,#grossPerOrder,#productionCost,#shippingCost')
   .forEach(el=>el.addEventListener('input',resetScenario));
-
-// Overlay-Steuerung
-document.getElementById("embedLink").addEventListener("click",e=>{e.preventDefault();document.getElementById("overlay").style.display="flex";});
-document.getElementById("closeOverlay").addEventListener("click",()=>{document.getElementById("overlay").style.display="none";});
+document.getElementById("grossPerOrder").addEventListener("input",updateNet);
 </script>
 
 </body>
