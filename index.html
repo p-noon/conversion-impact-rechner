@@ -212,19 +212,19 @@ function computeBase(){
 
   // Slider initialisieren
   const crSlider=document.getElementById("sliderCr");
-  crSlider.min=Math.max(0,(base.conversionRate*100)-5);
-  crSlider.max=(base.conversionRate*100)+5;
-  crSlider.value=base.conversionRate*100;
+  crSlider.min=Math.max(0,(conversionRate*100)-5);
+  crSlider.max=(conversionRate*100)+5;
+  crSlider.value=conversionRate*100;
   crSlider.dataset.center=crSlider.value;
 
   const bonSlider=document.getElementById("sliderBon");
-  bonSlider.min=base.bonGross*0.5;
-  bonSlider.max=base.bonGross*1.5;
-  bonSlider.value=base.bonGross;
+  bonSlider.min=bonGross*0.5;
+  bonSlider.max=bonGross*1.5;
+  bonSlider.value=bonGross;
   bonSlider.dataset.center=bonSlider.value;
 
-  document.getElementById("bonValue").textContent=fmt2(base.bonGross);
-  document.getElementById("crValue").textContent=fmt2(base.conversionRate*100);
+  document.getElementById("bonValue").textContent=fmt2(bonGross);
+  document.getElementById("crValue").textContent=fmt2(conversionRate*100);
 
   updateScenario();
 }
@@ -269,21 +269,25 @@ function updateScenario(){
   }
 }
 
-// --- Event Listener für Zahlenfelder mit Komma ---
+// --- Event Listener für Zahlenfelder ---
 function attachNumberInput(id){
   const el = document.getElementById(id);
   el.addEventListener("input", () => {
-    // Nur Zahlen und Komma erlauben
     el.value = el.value.replace(/[^0-9,]/g, "");
-    // Nur ein Komma zulassen
     const parts = el.value.split(",");
-    if(parts.length > 2){
-      el.value = parts[0] + "," + parts.slice(1).join("");
+    if(parts.length > 2){ el.value = parts[0] + "," + parts.slice(1).join(""); }
+    // Tausenderpunkte formatieren
+    const numeric = parseNum(el.value);
+    const cursorPos = el.selectionStart;
+    if(!isNaN(numeric) && numeric!==0){
+      el.value = numeric.toLocaleString("de-DE",{minimumFractionDigits:0, maximumFractionDigits:2});
     }
+       el.setSelectionRange(cursorPos, cursorPos);
     computeBase();
   });
 }
 
+// Event Listener für alle Eingabefelder
 ["totalRevenue","conversionRate","profit","bonGross","productionCost","shippingCost"].forEach(attachNumberInput);
 
 document.getElementById("autoEstimate").addEventListener("change", ()=>{
@@ -306,9 +310,17 @@ document.getElementById("resetCr").addEventListener("click",()=>{
   updateScenario();
 });
 
-document.getElementById("embedLink").addEventListener("click", e=>{ e.preventDefault(); document.getElementById("overlay").style.display="flex"; });
-document.getElementById("closeOverlay").addEventListener("click",()=>{ document.getElementById("overlay").style.display="none"; });
+document.getElementById("embedLink").addEventListener("click", e=>{
+  e.preventDefault(); 
+  document.getElementById("overlay").style.display="flex";
+});
+document.getElementById("closeOverlay").addEventListener("click",()=>{
+  document.getElementById("overlay").style.display="none";
+});
 
+// Initialer Basiswert beim Laden
+computeBase();
 </script>
 </body>
 </html>
+
