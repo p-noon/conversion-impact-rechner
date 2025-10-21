@@ -78,13 +78,13 @@ footer a:hover{text-decoration:underline}
     <div class="slider-wrapper">
       <span class="slider-label-inline">Neuer Bon:</span>
       <span id="bonValue" class="slider-value">–</span>
-      <input id="sliderBon" type="range" min="0" max="200" step="0.01">
+      <input id="sliderBon" type="range" step="0.01">
     </div>
 
     <div class="slider-wrapper">
       <span class="slider-label-inline">Neue Conversion Rate:</span>
       <span id="crValue" class="slider-value">–</span>
-      <input id="sliderCr" type="range" min="0" max="10" step="0.01">
+      <input id="sliderCr" type="range" step="0.01">
     </div>
 
     <div class="result-grid">
@@ -118,34 +118,32 @@ footer a:hover{text-decoration:underline}
 </div>
 
 <script>
-// Hilfsfunktionen
 function fmt(num){return isFinite(num)?num.toLocaleString("de-DE",{minimumFractionDigits:0,maximumFractionDigits:0}):"–";}
 function fmt2(num){return isFinite(num)?num.toLocaleString("de-DE",{minimumFractionDigits:2,maximumFractionDigits:2}):"–";}
 
-// sichere Zahl-Konvertierung für Punkt/Komma
-function parseNum(val){
-  if(typeof val !== "string") return +val||0;
-  return parseFloat(val.replace(",",".").replace(/\./g, m => m === "." && val.indexOf(".")===val.lastIndexOf(".")? "." : "")) || 0;
-}
-
 let base={};
 
+function parseInput(value){
+  // Ersetze , durch . und parseFloat
+  return parseFloat(value.toString().replace(",",".").replace(/\./g, m => m===','?'.':''));
+}
+
 function updateNet(){
-  const gross=parseNum(document.getElementById("bonGross").value);
+  const gross=parseInput(document.getElementById("bonGross").value)||0;
   const net=gross/1.19;
   document.getElementById("bonNet").value=net?fmt2(net):"";
 }
 
 function computeBase(){
   updateNet();
-  const totalRevenue=parseNum(document.getElementById("totalRevenue").value);
-  const conversionRate=parseNum(document.getElementById("conversionRate").value)/100;
+  const totalRevenue=parseInput(document.getElementById("totalRevenue").value)||0;
+  const conversionRate=(+document.getElementById("conversionRate").value||0)/100;
   const profitInput=document.getElementById("profit");
   const autoEstimate=document.getElementById("autoEstimate").checked;
-  const bonGross=parseNum(document.getElementById("bonGross").value);
+  const bonGross=parseInput(document.getElementById("bonGross").value)||0;
   const bonNet=bonGross/1.19;
-  const productionCost=parseNum(document.getElementById("productionCost").value);
-  const shippingCost=parseNum(document.getElementById("shippingCost").value);
+  const productionCost=parseInput(document.getElementById("productionCost").value)||0;
+  const shippingCost=parseInput(document.getElementById("shippingCost").value)||0;
 
   if(!totalRevenue||!conversionRate||!bonGross) return;
 
@@ -181,8 +179,8 @@ function computeBase(){
 function updateScenario(){
   if(!base.totalRevenue)return;
 
-  const newBon=parseNum(document.getElementById("sliderBon").value);
-  const newCrPct=parseNum(document.getElementById("sliderCr").value);
+  const newBon=parseFloat(document.getElementById("sliderBon").value)||0;
+  const newCrPct=parseFloat(document.getElementById("sliderCr").value)||0;
   const newCr=newCrPct/100;
 
   document.getElementById("bonValue").textContent=fmt2(newBon);
