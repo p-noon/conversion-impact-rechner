@@ -5,138 +5,142 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Conversion & Bon Rechner</title>
 <style>
-body{
-  font-family:'Inter',sans-serif;
-  background:#f9fafb;
-  color:#111;
-  padding:40px;
+body {
+  font-family: "Inter", sans-serif;
+  background: #f9fafb;
+  color: #111;
+  padding: 40px;
 }
-.container{
-  max-width:900px;
-  margin:auto;
+.container {
+  max-width: 900px;
+  margin: auto;
 }
-h1{
-  font-size:28px;
-  margin-bottom:20px;
-  text-align:center;
+h1 {
+  font-size: 28px;
+  margin-bottom: 30px;
+  text-align: center;
 }
-.grid{
-  display:grid;
-  grid-template-columns:1fr 1fr;
-  gap:20px;
+.grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
 }
-label{
-  font-size:14px;
-  font-weight:600;
-  margin-bottom:4px;
-  display:block;
+label {
+  font-size: 14px;
+  font-weight: 600;
+  display: block;
+  margin-bottom: 4px;
 }
-input[type="number"],input[type="text"]{
-  width:100%;
-  padding:8px;
-  font-size:15px;
-  border:1px solid #ccc;
-  border-radius:8px;
-  box-sizing:border-box;
-  text-align:right;
+input[type="text"],
+input[type="number"] {
+  width: 100%;
+  padding: 8px;
+  font-size: 15px;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  text-align: right;
+  box-sizing: border-box;
 }
-.slider-container{
-  margin-top:40px;
+.radio-wrap {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 8px;
 }
-.slider-header{
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-  margin-bottom:8px;
+#autoEstimate {
+  appearance: none;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  border: 2px solid #aaa;
+  cursor: pointer;
+  position: relative;
 }
-.slider-header span{
-  font-weight:600;
+#autoEstimate:checked {
+  background-color: #666;
+  border-color: #666;
 }
-.reset-button{
-  cursor:pointer;
-  color:#555;
-  font-size:16px;
-  transition:0.3s;
+.slider-container {
+  margin-top: 40px;
 }
-.reset-button:hover{
-  color:#111;
+.slider-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
 }
-input[type="range"]{
-  width:100%;
+.reset-button {
+  cursor: pointer;
+  color: #666;
+  font-size: 16px;
+  transition: 0.3s;
 }
-.kacheln{
-  display:flex;
-  justify-content:space-between;
-  margin-top:40px;
-  gap:20px;
+.reset-button:hover {
+  color: #000;
 }
-.kachel{
-  background:#fff;
-  border-radius:12px;
-  box-shadow:0 2px 8px rgba(0,0,0,0.1);
-  padding:20px;
-  flex:1;
-  text-align:center;
+input[type="range"] {
+  width: 100%;
 }
-.kachel h3{
-  font-size:18px;
-  margin-bottom:8px;
+.kacheln {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 40px;
+  gap: 20px;
 }
-.kachel .value{
-  font-size:26px;
-  font-weight:700;
+.kachel {
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  padding: 20px;
+  flex: 1;
+  text-align: center;
 }
-.kachel .change{
-  font-size:14px;
-  margin-top:4px;
+.kachel h3 {
+  font-size: 18px;
+  margin-bottom: 8px;
 }
-.positive{color:#0a0;}
-.negative{color:#c00;}
-.radio-wrap{
-  display:flex;
-  align-items:center;
-  gap:6px;
-  margin-top:8px;
+.kachel .value {
+  font-size: 26px;
+  font-weight: 700;
 }
-#autoEstimate{
-  appearance:none;
-  width:16px;
-  height:16px;
-  border-radius:50%;
-  border:2px solid #aaa;
-  position:relative;
-  cursor:pointer;
+.kachel .change {
+  font-size: 14px;
+  margin-top: 4px;
 }
-#autoEstimate:checked{
-  background-color:#666;
-  border-color:#666;
-}
-.footer{
-  text-align:center;
-  font-size:13px;
-  color:#666;
-  margin-top:40px;
+.positive { color: #0a0; }
+.negative { color: #c00; }
+.footer {
+  text-align: center;
+  font-size: 13px;
+  color: #666;
+  margin-top: 40px;
 }
 </style>
 </head>
 <body>
 <div class="container">
   <h1>Conversion & Bon Rechner</h1>
+
   <div class="grid">
     <div>
       <label>Gesamtumsatz (€)</label>
       <input id="revenue" type="text" placeholder="z. B. 100.000">
+
       <label>Conversion Rate (%)</label>
-      <input id="cr" type="number" step="0.01" placeholder="z. B. 2.5">
+      <input id="cr" type="number" step="0.01" placeholder="z. B. 2,5">
+
       <label>Ertrag (optional, €)</label>
       <input id="profit" type="text" placeholder="z. B. 15.000">
+
       <div class="radio-wrap">
         <input type="checkbox" id="autoEstimate">
         <label for="autoEstimate">Ertrag automatisch ergänzen</label>
       </div>
+
       <label>Besucherzahl (automatisch)</label>
       <input id="visitors" type="text" readonly>
     </div>
+
     <div>
       <label>Bon (brutto, €)</label>
       <input id="bon" type="text" placeholder="z. B. 40">
@@ -154,13 +158,13 @@ input[type="range"]{
       <span>Conversion Rate</span>
       <span class="reset-button" id="resetCR">⟳</span>
     </div>
-    <input type="range" id="crSlider" min="0" max="5" step="0.1" value="0">
+    <input type="range" id="crSlider" min="-50" max="50" step="0.1" value="0">
 
     <div class="slider-header" style="margin-top:30px;">
       <span>Bon</span>
       <span class="reset-button" id="resetBon">⟳</span>
     </div>
-    <input type="range" id="bonSlider" min="-20" max="20" step="1" value="0">
+    <input type="range" id="bonSlider" min="-50" max="50" step="0.1" value="0">
   </div>
 
   <div class="kacheln">
@@ -180,12 +184,8 @@ input[type="range"]{
 </div>
 
 <script>
-function parseNumber(v){
-  return parseFloat(v.toString().replace(/\./g,'').replace(',','.'))||0;
-}
-function formatNumber(x){
-  return x.toLocaleString('de-DE',{maximumFractionDigits:0});
-}
+function parseNumber(v){return parseFloat(v.toString().replace(/\./g,'').replace(',','.'))||0;}
+function formatNumber(x){return x.toLocaleString('de-DE',{maximumFractionDigits:0});}
 
 function updateNetBon(){
   const bon=parseNumber(document.getElementById('bon').value);
@@ -215,7 +215,6 @@ function updateResults(){
   const rev=parseNumber(document.getElementById('revenue').value);
   const cr=parseNumber(document.getElementById('cr').value)/100;
   const bon=parseNumber(document.getElementById('bon').value);
-  const bonNet=bon/1.19;
   const cost=parseNumber(document.getElementById('cost').value);
   const ship=parseNumber(document.getElementById('ship').value);
   const profit=parseNumber(document.getElementById('profit').value);
@@ -273,17 +272,17 @@ document.getElementById('autoEstimate').addEventListener('change',()=>{
 document.getElementById('crSlider').addEventListener('input',updateResults);
 document.getElementById('bonSlider').addEventListener('input',updateResults);
 
-document.getElementById('crSlider').addEventListener('dblclick',()=>{
-  document.getElementById('crSlider').value=0;updateResults();
+['crSlider','bonSlider'].forEach(id=>{
+  document.getElementById(id).addEventListener('dblclick',()=>{
+    document.getElementById(id).value=0;
+    updateResults();
+  });
 });
-document.getElementById('bonSlider').addEventListener('dblclick',()=>{
-  document.getElementById('bonSlider').value=0;updateResults();
-});
-document.getElementById('resetCR').addEventListener('click',()=>{
-  document.getElementById('crSlider').value=0;updateResults();
-});
-document.getElementById('resetBon').addEventListener('click',()=>{
-  document.getElementById('bonSlider').value=0;updateResults();
+['resetCR','resetBon'].forEach(id=>{
+  document.getElementById(id).addEventListener('click',()=>{
+    document.getElementById(id.replace('reset','').toLowerCase()+'Slider').value=0;
+    updateResults();
+  });
 });
 </script>
 </body>
