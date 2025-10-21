@@ -2,7 +2,7 @@
 <html lang="de">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Umsatz- & Ertrags-Simulator</title>
 <style>
 body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text",Roboto,Arial,sans-serif;background:#f4f4f6;padding:20px}
@@ -50,11 +50,11 @@ footer a:hover{text-decoration:underline}
   <div class="input-grid">
     <div class="column">
       <label>Gesamtumsatz (EUR)</label>
-      <input id="totalRevenue" type="text" placeholder="z. B. 120.000">
+      <input id="totalRevenue" type="text" placeholder="z. B. 120000">
       <label>Conversion Rate (%)</label>
-      <input id="conversionRate" type="number" step="0.01" placeholder="z. B. 2">
+      <input id="conversionRate" type="text" placeholder="z. B. 2">
       <label>Ertrag (optional, EUR)</label>
-      <input id="profit" type="number" step="1" placeholder="z. B. 20.000">
+      <input id="profit" type="text" placeholder="z. B. 20000">
       <div class="radio-wrap">
         <input type="checkbox" id="autoEstimate">
         <label for="autoEstimate">Ertrag automatisch ergänzen</label>
@@ -64,13 +64,13 @@ footer a:hover{text-decoration:underline}
 
     <div class="column">
       <label>Bon (Brutto, EUR)</label>
-      <input id="bonGross" type="number" step="0.01" placeholder="z. B. 60">
+      <input id="bonGross" type="text" placeholder="z. B. 60">
       <label>Bon (Netto, automatisch)</label>
       <input id="bonNet" type="text" readonly>
       <label>Herstellungskosten (EUR)</label>
-      <input id="productionCost" type="number" step="0.01" placeholder="z. B. 20">
+      <input id="productionCost" type="text" placeholder="z. B. 20">
       <label>Versand (EUR)</label>
-      <input id="shippingCost" type="number" step="0.01" placeholder="z. B. 5">
+      <input id="shippingCost" type="text" placeholder="z. B. 5">
     </div>
   </div>
 
@@ -118,34 +118,33 @@ footer a:hover{text-decoration:underline}
 </div>
 
 <script>
-function fmt(num){return isFinite(num)?num.toLocaleString("de-DE",{minimumFractionDigits:0,maximumFractionDigits:0}):"–";}
-function fmt2(num){return isFinite(num)?num.toLocaleString("de-DE",{minimumFractionDigits:2,maximumFractionDigits:2}):"–";}
+function parseNum(str){
+  return parseFloat(str.replace(",",".").replace(/\s/g,"")) || 0;
+}
+
+function fmt(num){ return isFinite(num)?num.toLocaleString("de-DE",{minimumFractionDigits:0,maximumFractionDigits:0}):"–";}
+function fmt2(num){ return isFinite(num)?num.toLocaleString("de-DE",{minimumFractionDigits:2,maximumFractionDigits:2}):"–";}
 
 let base={};
 
-function parseInput(value){
-  // Ersetze , durch . und parseFloat
-  return parseFloat(value.toString().replace(",",".").replace(/\./g, m => m===','?'.':''));
-}
-
 function updateNet(){
-  const gross=parseInput(document.getElementById("bonGross").value)||0;
+  const gross=parseNum(document.getElementById("bonGross").value);
   const net=gross/1.19;
   document.getElementById("bonNet").value=net?fmt2(net):"";
 }
 
 function computeBase(){
   updateNet();
-  const totalRevenue=parseInput(document.getElementById("totalRevenue").value)||0;
-  const conversionRate=(+document.getElementById("conversionRate").value||0)/100;
-  const profitInput=document.getElementById("profit");
+  const totalRevenue=parseNum(document.getElementById("totalRevenue").value);
+  const conversionRate=parseNum(document.getElementById("conversionRate").value)/100;
+  const profitInput=parseNum(document.getElementById("profit").value);
   const autoEstimate=document.getElementById("autoEstimate").checked;
-  const bonGross=parseInput(document.getElementById("bonGross").value)||0;
+  const bonGross=parseNum(document.getElementById("bonGross").value);
   const bonNet=bonGross/1.19;
-  const productionCost=parseInput(document.getElementById("productionCost").value)||0;
-  const shippingCost=parseInput(document.getElementById("shippingCost").value)||0;
+  const productionCost=parseNum(document.getElementById("productionCost").value);
+  const shippingCost=parseNum(document.getElementById("shippingCost").value);
 
-  if(!totalRevenue||!conversionRate||!bonGross) return;
+  if(!totalRevenue || !conversionRate || !bonGross) return;
 
   const visitors=totalRevenue/(conversionRate*bonGross);
   document.getElementById("visitorDisplay").textContent="≈ "+fmt(visitors)+" Besucher";
@@ -153,22 +152,20 @@ function computeBase(){
   if(autoEstimate){
     const costRatio=productionCost/bonNet;
     const profitPerOrder=bonNet-(bonNet*costRatio)-shippingCost;
-    profitInput.value=Math.round(visitors*conversionRate*profitPerOrder);
+    document.getElementById("profit").value=Math.round(visitors*conversionRate*profitPerOrder);
   }
 
-  base={totalRevenue,conversionRate,profit:+profitInput.value||0,bonGross,bonNet,productionCost,shippingCost,visitors};
+  base={totalRevenue,conversionRate,profit:profitInput,bonGross,bonNet,productionCost,shippingCost,visitors};
 
   const crSlider=document.getElementById("sliderCr");
   crSlider.min=Math.max(0,(base.conversionRate*100)-5);
   crSlider.max=(base.conversionRate*100)+5;
   crSlider.value=base.conversionRate*100;
-  crSlider.dataset.center=crSlider.value;
 
   const bonSlider=document.getElementById("sliderBon");
   bonSlider.min=base.bonGross*0.5;
   bonSlider.max=base.bonGross*1.5;
   bonSlider.value=base.bonGross;
-  bonSlider.dataset.center=bonSlider.value;
 
   document.getElementById("bonValue").textContent=fmt2(base.bonGross);
   document.getElementById("crValue").textContent=fmt2(base.conversionRate*100);
@@ -177,14 +174,13 @@ function computeBase(){
 }
 
 function updateScenario(){
-  if(!base.totalRevenue)return;
+  if(!base.totalRevenue) return;
 
-  const newBon=parseFloat(document.getElementById("sliderBon").value)||0;
-  const newCrPct=parseFloat(document.getElementById("sliderCr").value)||0;
-  const newCr=newCrPct/100;
+  const newBon=parseNum(document.getElementById("sliderBon").value);
+  const newCr=parseNum(document.getElementById("sliderCr").value)/100;
 
   document.getElementById("bonValue").textContent=fmt2(newBon);
-  document.getElementById("crValue").textContent=fmt2(newCrPct);
+  document.getElementById("crValue").textContent=fmt2(newCr*100);
 
   const visitors=base.visitors;
   const newRevenue=visitors*newCr*newBon;
@@ -209,7 +205,7 @@ function updateScenario(){
     document.getElementById("deltaProfitRel").textContent=(deltaProfit>=0?"+":"")+fmt2(deltaProfitPct)+" %";
     document.getElementById("deltaProfitRel").className="delta "+(deltaProfit>=0?"positive":"negative");
     document.getElementById("newProfitTotal").textContent="Gesamt: "+fmt(newProfit)+" €";
-  }else{
+  } else {
     document.getElementById("deltaProfitRel").textContent="";
     document.getElementById("newProfitTotal").textContent="";
   }
@@ -229,7 +225,9 @@ document.getElementById("autoEstimate").addEventListener("change", ()=>{
 document.getElementById("sliderBon").addEventListener("input",updateScenario);
 document.getElementById("sliderCr").addEventListener("input",updateScenario);
 document.querySelectorAll('input[type="range"]').forEach(slider=>{
-  slider.addEventListener("dblclick",()=>{if(slider.dataset.center){slider.value=slider.dataset.center;updateScenario();}});
+  slider.addEventListener("dblclick",()=>{
+    if(slider.value) {slider.value=(slider.dataset.center||slider.value); updateScenario();}
+  });
 });
 
 document.getElementById("embedLink").addEventListener("click",e=>{
