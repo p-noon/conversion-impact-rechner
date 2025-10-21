@@ -170,7 +170,9 @@ footer a:hover{text-decoration:underline}
 
 <script>
 // --- Hilfsfunktionen ---
-function parseNum(v){ return parseFloat((v||"").toString().replace(/\./g,"").replace(",",".").trim())||0; }
+function parseNum(v){ 
+  return parseFloat((v||"").toString().replace(/\./g,"").replace(",",".").trim())||0; 
+}
 function fmt(num){ return isFinite(num)?num.toLocaleString("de-DE"):"–"; }
 function fmt2(num){ return isFinite(num)?num.toLocaleString("de-DE",{minimumFractionDigits:2,maximumFractionDigits:2}):"–"; }
 
@@ -267,12 +269,17 @@ function updateScenario(){
   }
 }
 
-// --- Event Listener ---
+// --- Event Listener für Zahlenfelder mit Komma ---
 function attachNumberInput(id){
-  const el=document.getElementById(id);
-  el.addEventListener("input", ()=>{
-    el.value=el.value.replace(/[^\d,]/g,"");
-    el.value=el.value.replace(",",".").replace(/\.(?=.*\.)/g,"");
+  const el = document.getElementById(id);
+  el.addEventListener("input", () => {
+    // Nur Zahlen und Komma erlauben
+    el.value = el.value.replace(/[^0-9,]/g, "");
+    // Nur ein Komma zulassen
+    const parts = el.value.split(",");
+    if(parts.length > 2){
+      el.value = parts[0] + "," + parts.slice(1).join("");
+    }
     computeBase();
   });
 }
