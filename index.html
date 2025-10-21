@@ -2,7 +2,7 @@
 <html lang="de">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Umsatz- & Ertrags-Simulator</title>
 <style>
 body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text",Roboto,Arial,sans-serif;background:#f4f4f6;padding:20px}
@@ -50,11 +50,11 @@ footer a:hover{text-decoration:underline}
   <div class="input-grid">
     <div class="column">
       <label>Gesamtumsatz (EUR)</label>
-      <input id="totalRevenue" type="text" placeholder="z. B. 120000">
+      <input id="totalRevenue" type="text" placeholder="z. B. 120.000">
       <label>Conversion Rate (%)</label>
       <input id="conversionRate" type="text" placeholder="z. B. 2">
       <label>Ertrag (optional, EUR)</label>
-      <input id="profit" type="text" placeholder="z. B. 20000">
+      <input id="profit" type="text" placeholder="z. B. 20.000">
       <div class="radio-wrap">
         <input type="checkbox" id="autoEstimate">
         <label for="autoEstimate">Ertrag automatisch ergänzen</label>
@@ -78,13 +78,13 @@ footer a:hover{text-decoration:underline}
     <div class="slider-wrapper">
       <span class="slider-label-inline">Neuer Bon:</span>
       <span id="bonValue" class="slider-value">–</span>
-      <input id="sliderBon" type="range" step="0.01">
+      <input id="sliderBon" type="range" min="0" max="200" step="0.01">
     </div>
 
     <div class="slider-wrapper">
       <span class="slider-label-inline">Neue Conversion Rate:</span>
       <span id="crValue" class="slider-value">–</span>
-      <input id="sliderCr" type="range" step="0.01">
+      <input id="sliderCr" type="range" min="0" max="10" step="0.01">
     </div>
 
     <div class="result-grid">
@@ -118,69 +118,79 @@ footer a:hover{text-decoration:underline}
 </div>
 
 <script>
-function parseNum(str){
-  return parseFloat(str.replace(",",".").replace(/\s/g,"")) || 0;
+// Konvertiert Eingabe automatisch: Komma -> Punkt, nur gültige Zahlen
+function parseInput(id){
+  let val = document.getElementById(id).value.replace(",",".").replace(/[^\d.-]/g,"");
+  return parseFloat(val) || 0;
 }
 
-function fmt(num){ return isFinite(num)?num.toLocaleString("de-DE",{minimumFractionDigits:0,maximumFractionDigits:0}):"–";}
-function fmt2(num){ return isFinite(num)?num.toLocaleString("de-DE",{minimumFractionDigits:2,maximumFractionDigits:2}):"–";}
+// Formatierungen
+function fmt(num){return isFinite(num)?num.toLocaleString("de-DE",{minimumFractionDigits:0,maximumFractionDigits:0}):"–";}
+function fmt2(num){return isFinite(num)?num.toLocaleString("de-DE",{minimumFractionDigits:2,maximumFractionDigits:2}):"–";}
 
+// Basiswerte
 let base={};
 
+// Netto Bon
 function updateNet(){
-  const gross=parseNum(document.getElementById("bonGross").value);
+  const gross=parseInput("bonGross");
   const net=gross/1.19;
-  document.getElementById("bonNet").value=net?fmt2(net):"";
+  document.getElementById("bonNet").value = net ? fmt2(net) : "";
 }
 
+// Berechnung Basis
 function computeBase(){
   updateNet();
-  const totalRevenue=parseNum(document.getElementById("totalRevenue").value);
-  const conversionRate=parseNum(document.getElementById("conversionRate").value)/100;
-  const profitInput=parseNum(document.getElementById("profit").value);
-  const autoEstimate=document.getElementById("autoEstimate").checked;
-  const bonGross=parseNum(document.getElementById("bonGross").value);
+  const totalRevenue=parseInput("totalRevenue");
+  const conversionRate=parseInput("conversionRate")/100;
+  const profit=parseInput("profit");
+  const bonGross=parseInput("bonGross");
   const bonNet=bonGross/1.19;
-  const productionCost=parseNum(document.getElementById("productionCost").value);
-  const shippingCost=parseNum(document.getElementById("shippingCost").value);
+  const productionCost=parseInput("productionCost");
+  const shippingCost=parseInput("shippingCost");
 
   if(!totalRevenue || !conversionRate || !bonGross) return;
 
   const visitors=totalRevenue/(conversionRate*bonGross);
   document.getElementById("visitorDisplay").textContent="≈ "+fmt(visitors)+" Besucher";
 
-  if(autoEstimate){
+  // Auto-Ertrag
+  if(document.getElementById("autoEstimate").checked){
     const costRatio=productionCost/bonNet;
     const profitPerOrder=bonNet-(bonNet*costRatio)-shippingCost;
     document.getElementById("profit").value=Math.round(visitors*conversionRate*profitPerOrder);
   }
 
-  base={totalRevenue,conversionRate,profit:profitInput,bonGross,bonNet,productionCost,shippingCost,visitors};
+  base={totalRevenue,conversionRate,profit:parseInput("profit"),bonGross,bonNet,productionCost,shippingCost,visitors};
 
+  // Slider Setup
   const crSlider=document.getElementById("sliderCr");
   crSlider.min=Math.max(0,(base.conversionRate*100)-5);
   crSlider.max=(base.conversionRate*100)+5;
   crSlider.value=base.conversionRate*100;
+  crSlider.dataset.center=crSlider.value;
 
   const bonSlider=document.getElementById("sliderBon");
   bonSlider.min=base.bonGross*0.5;
   bonSlider.max=base.bonGross*1.5;
   bonSlider.value=base.bonGross;
+  bonSlider.dataset.center=bonSlider.value;
 
-  document.getElementById("bonValue").textContent=fmt2(base.bonGross);
-  document.getElementById("crValue").textContent=fmt2(base.conversionRate*100);
+  document.getElementById("bonValue").textContent=base.bonGross.toFixed(2);
+  document.getElementById("crValue").textContent=(base.conversionRate*100).toFixed(2);
 
   updateScenario();
 }
 
+// Szenario aktualisieren
 function updateScenario(){
   if(!base.totalRevenue) return;
 
-  const newBon=parseNum(document.getElementById("sliderBon").value);
-  const newCr=parseNum(document.getElementById("sliderCr").value)/100;
+  const newBon=parseInput("sliderBon");
+  const newCr=parseInput("sliderCr")/100;
 
-  document.getElementById("bonValue").textContent=fmt2(newBon);
-  document.getElementById("crValue").textContent=fmt2(newCr*100);
+  document.getElementById("bonValue").textContent=newBon.toFixed(2);
+  document.getElementById("crValue").textContent=(newCr*100).toFixed(2);
 
   const visitors=base.visitors;
   const newRevenue=visitors*newCr*newBon;
@@ -205,38 +215,29 @@ function updateScenario(){
     document.getElementById("deltaProfitRel").textContent=(deltaProfit>=0?"+":"")+fmt2(deltaProfitPct)+" %";
     document.getElementById("deltaProfitRel").className="delta "+(deltaProfit>=0?"positive":"negative");
     document.getElementById("newProfitTotal").textContent="Gesamt: "+fmt(newProfit)+" €";
-  } else {
+  }else{
     document.getElementById("deltaProfitRel").textContent="";
     document.getElementById("newProfitTotal").textContent="";
   }
 }
 
-document.querySelectorAll('#conversionRate,#profit,#bonGross,#productionCost,#shippingCost')
-  .forEach(el=>el.addEventListener('input',computeBase));
-
-document.getElementById("autoEstimate").addEventListener("change", ()=>{
-  const profitInput=document.getElementById("profit");
-  if(!document.getElementById("autoEstimate").checked){
-    profitInput.value="";
-  }
+// Event-Listener
+['totalRevenue','conversionRate','profit','bonGross','productionCost','shippingCost'].forEach(id=>{
+  document.getElementById(id).addEventListener('input',computeBase);
+});
+document.getElementById("autoEstimate").addEventListener("change",()=>{
+  if(!document.getElementById("autoEstimate").checked) document.getElementById("profit").value="";
   computeBase();
 });
-
 document.getElementById("sliderBon").addEventListener("input",updateScenario);
 document.getElementById("sliderCr").addEventListener("input",updateScenario);
 document.querySelectorAll('input[type="range"]').forEach(slider=>{
-  slider.addEventListener("dblclick",()=>{
-    if(slider.value) {slider.value=(slider.dataset.center||slider.value); updateScenario();}
-  });
+  slider.addEventListener("dblclick",()=>{if(slider.dataset.center){slider.value=slider.dataset.center;updateScenario();}});
 });
-
-document.getElementById("embedLink").addEventListener("click",e=>{
-  e.preventDefault();
-  document.getElementById("overlay").style.display="flex";
-});
+document.getElementById("embedLink").addEventListener("click",e=>{e.preventDefault();document.getElementById("overlay").style.display="flex";});
 document.getElementById("closeOverlay").addEventListener("click",()=>{document.getElementById("overlay").style.display="none";});
 
-// initial
+// Initial
 computeBase();
 </script>
 
