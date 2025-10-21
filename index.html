@@ -1,228 +1,500 @@
 <!DOCTYPE html>
 <html lang="de">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Marketing-Hebel-Rechner</title>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Conversion & Bon Impact – Marketing-Hebel</title>
 <style>
-body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text",Roboto,Arial,sans-serif;background:#f4f4f6;padding:20px}
-.simulator{max-width:950px;margin:40px auto;background:#fff;border-radius:24px;box-shadow:0 8px 20px rgba(0,0,0,0.08);padding:28px;color:#111}
-h1{text-align:center;font-size:1.8rem;margin:0 0 8px}
-.subtitle{text-align:center;color:#666;margin-bottom:22px}
-.input-grid{display:flex;gap:24px;flex-wrap:wrap}
-.column{flex:1;min-width:280px}
-label{display:block;margin-top:12px;margin-bottom:6px;color:#444;font-size:0.95rem}
-input[type="number"],input[readonly]{width:100%;padding:10px;border-radius:10px;border:1px solid #d2d2d7;background:#f9f9f9;box-sizing:border-box;font-size:1rem}
-input[readonly]{background:#f0f0f0}
-.results{margin-top:26px;display:flex;gap:14px;flex-wrap:wrap}
-.result-card{background:#f6f7fb;padding:14px;border-radius:12px;text-align:center;flex:1;min-width:120px}
-.result-card h2{margin:8px 0;font-size:1.6rem;color:#0071e3}
-.result-card.alt h2{color:#333}
-.delta{font-size:0.85rem;margin-top:4px}
-.delta.positive{color:#0a8f00}
-.delta.negative{color:#d70015}
-.slider-section{margin-top:28px;padding-top:18px;border-top:1px solid #e6e6ee;display:flex;flex-direction:column;gap:20px}
-.slider-wrapper{position:relative;text-align:center}
-.slider-label-inline{font-weight:600;color:#0071e3;font-size:1rem}
-.slider-value{display:inline-block;margin-left:6px;font-weight:700;color:#0071e3;white-space:nowrap}
-input[type="range"]{width:100%;accent-color:#0071e3;cursor:pointer;margin-top:8px}
-footer{margin-top:20px;text-align:center;color:#999;font-size:13px}
-footer a{color:#0071e3;text-decoration:none}
-footer a:hover{text-decoration:underline}
-
-/* Overlay für Einbettung */
-.overlay{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);display:none;justify-content:center;align-items:center;z-index:999}
-.overlay-content{background:#fff;padding:24px;border-radius:16px;width:90%;max-width:600px;box-shadow:0 10px 30px rgba(0,0,0,0.2)}
-.overlay-content textarea{width:100%;height:120px;font-family:monospace;border-radius:8px;border:1px solid #ccc;padding:8px}
-.close-btn{background:#0071e3;color:white;border:none;padding:8px 16px;border-radius:8px;margin-top:12px;cursor:pointer}
-.close-btn:hover{background:#0a84ff}
+  :root{--blue:#0071e3;--green:#0a8f00;--red:#d70015}
+  body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text",Roboto,Arial,sans-serif;background:#f4f4f6;padding:20px;color:#111}
+  .simulator{max-width:980px;margin:36px auto;background:#fff;border-radius:20px;box-shadow:0 8px 24px rgba(0,0,0,0.08);padding:28px}
+  h1{font-size:1.8rem;text-align:center;margin:0 0 6px}
+  .subtitle{text-align:center;color:#666;margin-bottom:18px}
+  .input-grid{display:flex;gap:20px;flex-wrap:wrap}
+  .column{flex:1;min-width:260px}
+  h3{margin-bottom:6px}
+  label{display:block;margin-top:12px;margin-bottom:6px;color:#444;font-size:0.95rem}
+  input[type="text"], input[type="number"], input[readonly]{width:100%;padding:10px;border-radius:10px;border:1px solid #dcd7e0;background:#f9f9f9;box-sizing:border-box;font-size:1rem}
+  input[readonly]{background:#f4f4f6;color:#333}
+  .small-helper{font-size:0.88rem;color:#666;margin-top:8px}
+  .slider-section{margin-top:20px;padding-top:18px;border-top:1px solid #ecebf2}
+  .slider-wrapper{margin:18px 0}
+  .slider-label{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
+  .slider-label .label{font-weight:600;color:var(--blue)}
+  .slider-label .val{font-weight:700;color:var(--blue)}
+  input[type="range"]{width:100%;accent-color:var(--blue);cursor:pointer}
+  .results-grid{display:flex;gap:14px;flex-wrap:wrap;margin-top:18px}
+  .card{flex:1;min-width:220px;background:#f6f7fb;padding:14px;border-radius:12px;text-align:center}
+  .card h2{margin:8px 0;font-size:1.6rem;color:var(--blue)}
+  .card .muted{font-size:0.9rem;color:#666}
+  .delta{font-size:0.95rem;margin-top:6px}
+  .delta.positive{color:var(--green);font-weight:700}
+  .delta.negative{color:var(--red);font-weight:700}
+  .inline-visitors{font-size:0.92rem;color:#666;margin-top:6px}
+  footer{margin-top:18px;text-align:center;color:#999;font-size:13px}
+  footer a{color:var(--blue);text-decoration:none}
+  footer a:hover{text-decoration:underline}
+  @media (max-width:720px){ .input-grid{flex-direction:column} .results-grid{flex-direction:column} }
 </style>
 </head>
 <body>
+  <div class="simulator">
+    <h1>Conversion & Bon Impact</h1>
+    <p class="subtitle">Sieh, wie sich neue Bonhöhe und Conversion Rate auf Zusatz-Umsatz & Zusatz-Ertrag auswirken.</p>
 
-<div class="simulator">
-  <h1>Marketing-Hebel-Rechner</h1>
-  <p class="subtitle">Simuliere, wie sich Änderungen bei Kassenzettel und Conversion Rate auf Umsatz & Ertrag auswirken.</p>
+    <div class="input-grid">
+      <div class="column">
+        <h3>Grunddaten</h3>
 
-  <div class="input-grid">
-    <div class="column">
-      <h3>Grunddaten</h3>
-      <label>Umsatz (EUR)</label>
-      <input id="baseRevenue" type="number" step="0.01" placeholder="z.B. 1000">
-      <label>Conversion Rate (%)</label>
-      <input id="baseCR" type="number" step="0.01" placeholder="z.B. 2">
-      <label>Ertrag (optional, EUR)</label>
-      <input id="baseProfit" type="number" step="0.01" placeholder="z.B. 200">
+        <label>Gesamtumsatz (EUR)</label>
+        <input id="baseRevenue" type="text" inputmode="decimal" placeholder="z. B. 500.000" />
+
+        <label>Conversion Rate (%)</label>
+        <input id="baseCR" type="text" inputmode="decimal" placeholder="z. B. 2,5" />
+        
+        <label>Ertrag (optional, EUR)</label>
+        <input id="baseProfit" type="text" inputmode="decimal" placeholder="z. B. 50.000 — leer = keine Referenz" />
+
+        <div id="visitorsHint" class="inline-visitors" style="display:none">Besucher: <span id="visitorsCount">—</span></div>
+      </div>
+
+      <div class="column">
+        <h3>Bon & Kosten</h3>
+
+        <label>Brutto-Bon pro Bestellung (EUR)</label>
+        <input id="grossBon" type="text" inputmode="decimal" placeholder="z. B. 60" />
+
+        <label>Nettobon (automatisch)</label>
+        <input id="netBon" readonly />
+
+        <label>Herstellungskosten pro Bestellung (EUR)</label>
+        <input id="prodCost" type="text" inputmode="decimal" placeholder="z. B. 8" />
+
+        <label>Verpackung & Versand (EUR)</label>
+        <input id="shipCost" type="text" inputmode="decimal" placeholder="z. B. 5" />
+      </div>
     </div>
 
-    <div class="column">
-      <h3>Bon & Kosten</h3>
-      <label>Brutto-Bon pro Bestellung (EUR)</label>
-      <input id="grossBon" type="number" step="0.01" placeholder="z.B. 50">
-      <label>Netto (automatisch)</label>
-      <input id="netBon" readonly>
-      <label>Herstellungskosten pro Bestellung (EUR)</label>
-      <input id="prodCost" type="number" step="0.01" placeholder="z.B. 20">
-      <label>Verpackung & Versand (EUR)</label>
-      <input id="shipCost" type="number" step="0.01" placeholder="z.B. 5">
+    <div class="slider-section">
+      <div class="slider-wrapper">
+        <div class="slider-label">
+          <div class="label">Neuer Brutto-Bon</div>
+          <div class="val" id="sliderBonVal">–</div>
+        </div>
+        <input id="sliderBon" type="range" />
+      </div>
+
+      <div class="slider-wrapper">
+        <div class="slider-label">
+          <div class="label">Neue Conversion Rate (%)</div>
+          <div class="val" id="sliderCRVal">–</div>
+        </div>
+        <input id="sliderCR" type="range" />
+      </div>
     </div>
+
+    <!-- ONLY these two cards under sliders -->
+    <div class="results-grid" id="topResults">
+      <div class="card">
+        <p class="muted">Neuer Umsatz (Brutto)</p>
+        <h2 id="newTotalRevenue">0 €</h2>
+        <div id="revDelta" class="delta">0 €</div>
+      </div>
+
+      <div class="card">
+        <p class="muted">Neuer Ertrag</p>
+        <h2 id="newTotalProfit">0 €</h2>
+        <div id="profitDelta" class="delta">0 €</div>
+      </div>
+    </div>
+
+    <footer>
+      entwickelt von <a href="https://www.purple-noon.de" target="_blank">Purple Noon</a>
+    </footer>
   </div>
-
-  <div class="slider-section" id="sliders">
-    <div class="slider-wrapper">
-      <span class="slider-label-inline">Neuer Bon:</span>
-      <span id="sliderBonValue" class="slider-value"></span>
-      <input id="sliderBon" type="range">
-    </div>
-    <div class="slider-wrapper">
-      <span class="slider-label-inline">Neue CR (%):</span>
-      <span id="sliderCRValue" class="slider-value"></span>
-      <input id="sliderCR" type="range">
-    </div>
-  </div>
-
-  <div class="results">
-    <div class="result-card">
-      <p>Gesamtumsatz</p>
-      <h2 id="totalRevenue">–</h2>
-    </div>
-    <div class="result-card alt">
-      <p>Gesamtertrag</p>
-      <h2 id="totalProfit">–</h2>
-    </div>
-    <div class="result-card">
-      <p>Besucherzahl</p>
-      <h2 id="visitors">–</h2>
-    </div>
-  </div>
-
-  <div class="results">
-    <div class="result-card">
-      <p>Zusatz-Umsatz</p>
-      <h2 id="addRevenue">0 €</h2>
-    </div>
-    <div class="result-card alt">
-      <p>Zusatz-Ertrag</p>
-      <h2 id="addProfit">0 €</h2>
-    </div>
-  </div>
-
-  <footer>
-    <a href="#" id="embedLink"><strong>🔗 Rechner einbetten / teilen</strong></a> – entwickelt von 
-    <a href="https://www.purple-noon.de" target="_blank">Purple Noon</a>
-  </footer>
-</div>
-
-<!-- Overlay -->
-<div class="overlay" id="overlay">
-  <div class="overlay-content">
-    <h3>Einbettungscode:</h3>
-    <textarea readonly><iframe src="https://p-noon.github.io/marketing-hebel-rechner/" width="100%" height="950" style="border:none;"></iframe></textarea>
-    <button class="close-btn" id="closeOverlay">Schließen</button>
-  </div>
-</div>
 
 <script>
-function fmt(n){return isFinite(n)?n.toLocaleString("de-DE",{minimumFractionDigits:2,maximumFractionDigits:2}):"–";}
-function round(n){return Math.round(n);}
-
-// Basis-Objekt
-let base={};
-
-function updateNetBon(){
-  const gross = +document.getElementById("grossBon").value||0;
-  document.getElementById("netBon").value = gross?fmt(gross/1.19)+" €":"";
-  setBase();
+/* -------------------------
+   Hilfsfunktionen — Format
+   ------------------------- */
+function parseNumberFromInput(str){
+  if(str === null || str === undefined) return NaN;
+  // remove spaces, dots (thousand separators), keep comma as decimal separator
+  const cleaned = String(str).replace(/\s/g,'').replace(/\./g,'').replace(',', '.').trim();
+  return cleaned === '' ? NaN : Number(cleaned);
+}
+function formatEUR(n){
+  if(!isFinite(n)) return '0,00 €';
+  return n.toLocaleString('de-DE',{minimumFractionDigits:2,maximumFractionDigits:2}) + ' €';
+}
+function formatNumberInputForDisplay(n){
+  if(n === '' || n === null || n === undefined) return '';
+  const v = parseNumberFromInput(n);
+  if(!isFinite(v)) return '';
+  // show without currency
+  return v.toLocaleString('de-DE',{minimumFractionDigits:0,maximumFractionDigits:2});
 }
 
-// Basis setzen bei Eingabe
-function setBase(){
-  const revenue = +document.getElementById("baseRevenue").value||0;
-  const cr = (+document.getElementById("baseCR").value||0)/100;
-  const profitInput = +document.getElementById("baseProfit").value;
-  const grossBon = +document.getElementById("grossBon").value||0;
-  const netBon = grossBon/1.19;
-  const prod = +document.getElementById("prodCost").value||0;
-  const ship = +document.getElementById("shipCost").value||0;
+/* -------------------------
+   Elemente
+   ------------------------- */
+const baseRevenueEl = document.getElementById('baseRevenue');
+const baseCREl = document.getElementById('baseCR');
+const baseProfitEl = document.getElementById('baseProfit');
 
-  if(!revenue || !cr || !grossBon) return;
+const grossBonEl = document.getElementById('grossBon');
+const netBonEl = document.getElementById('netBon');
+const prodCostEl = document.getElementById('prodCost');
+const shipCostEl = document.getElementById('shipCost');
 
-  const visitors = revenue / (cr * grossBon);
+const sliderBon = document.getElementById('sliderBon');
+const sliderCR = document.getElementById('sliderCR');
+const sliderBonVal = document.getElementById('sliderBonVal');
+const sliderCRVal = document.getElementById('sliderCRVal');
 
-  base={revenue, cr, profitInput, grossBon, netBon, prod, ship, visitors};
+const visitorsHint = document.getElementById('visitorsHint');
+const visitorsCount = document.getElementById('visitorsCount');
 
-  // Slider setzen
-  const sliderBon = document.getElementById("sliderBon");
-  const sliderCR = document.getElementById("sliderCR");
+const newTotalRevenueEl = document.getElementById('newTotalRevenue');
+const newTotalProfitEl = document.getElementById('newTotalProfit');
+const revDeltaEl = document.getElementById('revDelta');
+const profitDeltaEl = document.getElementById('profitDelta');
 
-  sliderBon.min = grossBon*0.5;
-  sliderBon.max = grossBon*1.5;
-  sliderBon.step = 0.1;
-  sliderBon.value = grossBon;
-  sliderBon.dataset.center = grossBon;
+/* -------------------------
+   Basis-Objekt
+   ------------------------- */
+let base = null;
+let sliderMoved = false;
 
-  sliderCR.min = Math.max(0, (base.cr*100)-3);
-  sliderCR.max = (base.cr*100)+3;
-  sliderCR.step = 0.01;
-  sliderCR.value = base.cr*100;
-  sliderCR.dataset.center = base.cr*100;
+/* -------------------------
+   Input formatting + events
+   We format the text inputs on input (thousand separator).
+   Parse with parseNumberFromInput when needed.
+   ------------------------- */
+function bindNumberFormatting(inputEl){
+  inputEl.addEventListener('input', e=>{
+    const raw = e.target.value;
+    // allow only digits, dots, commas and minus
+    // parse to number then reformat for display
+    const num = parseNumberFromInput(raw);
+    if(isFinite(num)){
+      // display formatted (no currency)
+      // keep up to 2 decimals
+      e.target.value = num.toLocaleString('de-DE',{minimumFractionDigits:0,maximumFractionDigits:2});
+    } else {
+      // keep user text if not parseable (empty or partial)
+      e.target.value = raw;
+    }
+    onBaseInputChange(); // update derived values live
+  });
 
-  document.getElementById("sliderBonValue").textContent = fmt(grossBon);
-  document.getElementById("sliderCRValue").textContent = fmt(base.cr*100);
-
-  updateResults(0,0);
-  updateTotals();
+  // on blur, if valid, ensure formatted with consistent decimals
+  inputEl.addEventListener('blur', e=>{
+    const num = parseNumberFromInput(e.target.value);
+    if(isFinite(num)){
+      e.target.value = num.toLocaleString('de-DE',{minimumFractionDigits:0,maximumFractionDigits:2});
+    }
+  });
 }
 
-// Update Totale
-function updateTotals(){
-  if(!base.revenue) return;
-  document.getElementById("totalRevenue").textContent = fmt(base.revenue)+" €";
-  document.getElementById("visitors").textContent = round(base.visitors);
-  document.getElementById("totalProfit").textContent = isFinite(base.profitInput)?fmt(base.profitInput)+" €":"–";
-}
+// attach formatting to all numeric text inputs
+[baseRevenueEl, baseCREl, baseProfitEl, grossBonEl, prodCostEl, shipCostEl].forEach(bindNumberFormatting);
 
-// Slider-Update
-function updateScenario(){
-  if(!base.revenue) return;
-  const newBon = +document.getElementById("sliderBon").value||0;
-  const newCR = (+document.getElementById("sliderCR").value||0)/100;
+/* -------------------------
+   Base calculation and slider init
+   ------------------------- */
+function onBaseInputChange(){
+  // parse base inputs
+  const baseRevenue = parseNumberFromInput(baseRevenueEl.value);
+  const baseCRpct = parseNumberFromInput(baseCREl.value); // percent value e.g. 2.5
+  const baseCR = isFinite(baseCRpct) ? baseCRpct / 100 : NaN;
+  const baseProfit = parseNumberFromInput(baseProfitEl.value); // optional
+  const grossBon = parseNumberFromInput(grossBonEl.value);
+  const prodCost = parseNumberFromInput(prodCostEl.value);
+  const shipCost = parseNumberFromInput(shipCostEl.value);
 
-  document.getElementById("sliderBonValue").textContent = fmt(newBon);
-  document.getElementById("sliderCRValue").textContent = fmt(newCR*100);
-
-  const deltaRevenue = base.visitors*newCR*(newBon-base.grossBon);
-  let deltaProfit = deltaRevenue;
-  if(isFinite(base.profitInput)){
-    deltaProfit = base.visitors*newCR*((newBon/1.19 - base.prod - base.ship) - (base.profitInput/base.visitors));
+  // if essential missing, hide results
+  if(!isFinite(baseRevenue) || !isFinite(baseCR) || !isFinite(grossBon)) {
+    base = null;
+    visitorsHint.style.display = 'none';
+    document.getElementById('newTotalRevenue').textContent = '0 €';
+    document.getElementById('newTotalProfit').textContent = '0 €';
+    revDeltaEl.textContent = '0 €';
+    profitDeltaEl.textContent = '0 €';
+    sliderBonVal.textContent = '–';
+    sliderCRVal.textContent = '–';
+    // keep sliders but disable
+    sliderBon.disabled = true; sliderCR.disabled = true;
+    return;
   }
 
-  updateResults(deltaRevenue, deltaProfit);
+  // compute visitors: visitors = revenue / (CR * Bon)
+  // note: CR is decimal, grossBon is per order (brutto)
+  const visitors = baseRevenue / ( baseCR * grossBon );
+
+  // set base object
+  base = {
+    baseRevenue,
+    baseCRpct,
+    baseCR,
+    baseProfit: isFinite(baseProfit) ? baseProfit : null,
+    grossBon,
+    netBon: grossBon / 1.19,
+    prodCost: isFinite(prodCost) ? prodCost : 0,
+    shipCost: isFinite(shipCost) ? shipCost : 0,
+    visitors
+  };
+
+  // update visitors display under CR/Ertrag
+  visitorsHint.style.display = 'block';
+  visitorsCount.textContent = Math.round(visitors).toLocaleString('de-DE');
+
+  // init sliders to ranges & values
+  initSliders();
+
+  // reset display values (start with 0 until slider moved)
+  sliderMoved = false;
+  updateCards(0,0, false);
+
+  // ensure sliders enabled
+  sliderBon.disabled = false; sliderCR.disabled = false;
 }
 
-function updateResults(deltaRev, deltaProf){
-  document.getElementById("addRevenue").textContent = fmt(deltaRev)+" €";
-  document.getElementById("addProfit").textContent = fmt(deltaProf)+" €";
+function initSliders(){
+  if(!base) return;
+  // Bon slider: 50%..150% like before; step 0.01 for fine control
+  sliderBon.min = Math.max(0, base.grossBon * 0.5);
+  sliderBon.max = base.grossBon * 1.5;
+  sliderBon.step = 0.01;
+  sliderBon.value = base.grossBon;
+  sliderBon.dataset.center = base.grossBon;
+
+  // CR slider: baseCRpct -3 .. +3 but not less than 0
+  const baseCRpct = base.baseCRpct;
+  sliderCR.min = Math.max(0, baseCRpct - 3);
+  sliderCR.max = baseCRpct + 3;
+  sliderCR.step = 0.01;
+  sliderCR.value = baseCRpct;
+  sliderCR.dataset.center = baseCRpct;
+
+  sliderBonVal.textContent = base.grossBon.toLocaleString('de-DE',{minimumFractionDigits:2,maximumFractionDigits:2});
+  sliderCRVal.textContent = baseCRpct.toLocaleString('de-DE',{minimumFractionDigits:2,maximumFractionDigits:2});
 }
 
-// Eventlistener
-['baseRevenue','baseCR','baseProfit','grossBon','prodCost','shipCost'].forEach(id=>{
-  document.getElementById(id).addEventListener('input',updateNetBon);
+/* -------------------------
+   Core calculation based on formulas you specified
+   ------------------------- */
+function computeFromSliders(){
+  if(!base) return { addRev:0, addProfit:0, newRevenue: base.baseRevenue, newProfit: base.baseProfit };
+
+  // current slider values
+  const newGross = parseFloat(sliderBon.value); // brutto
+  const newCRpct = parseFloat(sliderCR.value); // percent like 3.25
+  const newCR = newCRpct / 100;
+
+  // visitors from base
+  const visitors = base.visitors; // already baseRevenue / (baseCR * baseBon)
+
+  // Zusatz-Umsatz: visitors * newCR * (newBon - baseBon)
+  const addRevenue = visitors * newCR * (newGross - base.grossBon);
+  const newRevenue = base.baseRevenue + addRevenue;
+
+  // Herstellungskostenanteil X = prod / (netOld)
+  const netOld = base.grossBon / 1.19;
+  const x = netOld > 0 ? (base.prodCost / netOld) : 0;
+
+  // Ertrag pro neuer Bestellung Y = netNew - (netNew * x) - ship
+  const netNew = newGross / 1.19;
+  const Y = netNew - (netNew * x) - base.shipCost;
+
+  // Zusatz-Ertrag = visitors * newCR * Y
+  const addProfit = visitors * newCR * Y;
+
+  // If there is a base profit reference, the new total profit is baseProfit + addProfit
+  const newProfit = (base.baseProfit !== null) ? (base.baseProfit + addProfit) : addProfit;
+
+  return { addRevenue, addProfit, newRevenue, newProfit, newGross, newCRpct };
+}
+
+/* -------------------------
+   Update UI cards
+   ------------------------- */
+function updateCards(addRev, addProfit, showPercent=true){
+  // compute new totals for display
+  const computed = computeFromSliders();
+  const newRevenue = computed.newRevenue;
+  const newProfit = computed.newProfit;
+
+  // New revenue display
+  newTotalRevenueEl.textContent = formatEUR(newRevenue);
+  // delta below: show absolute addRevenue and percent change relative to baseRevenue
+  const revDeltaAbs = computed.addRevenue;
+  const revPerc = base && base.baseRevenue ? (revDeltaAbs / base.baseRevenue * 100) : 0;
+  revDeltaEl.textContent = (revDeltaAbs>=0?"+":"") + formatEUR(revDeltaAbs) + (showPercent ? ` (${revPerc>=0?'+':''}${revPerc.toFixed(1)}%)` : '');
+  revDeltaEl.className = 'delta ' + (revDeltaAbs >= 0 ? 'positive' : 'negative');
+
+  // New profit display / delta
+  newTotalProfitEl.textContent = formatEUR(newProfit);
+  if(base.baseProfit !== null && showPercent){
+    const profitDeltaAbs = computed.addProfit;
+    const profitPerc = base.baseProfit ? (profitDeltaAbs / base.baseProfit * 100) : 0;
+    profitDeltaEl.textContent = (profitDeltaAbs>=0?"+":"") + formatEUR(profitDeltaAbs) + ` (${profitDeltaAbs>=0?'+':''}${profitPerc.toFixed(1)}%)`;
+    profitDeltaEl.className = 'delta ' + (profitDeltaAbs >= 0 ? 'positive' : 'negative');
+  } else {
+    // only show absolute addProfit (no percent) OR if base profit is null show only absolute and no percent
+    const profitDeltaAbs = computed.addProfit;
+    profitDeltaEl.textContent = (profitDeltaAbs>=0?"+":"") + formatEUR(profitDeltaAbs);
+    profitDeltaEl.className = 'delta ' + (profitDeltaAbs >= 0 ? 'positive' : 'negative');
+    if(!showPercent) {
+      // if showPercent false, remove percent part (already not included)
+    }
+  }
+}
+
+/* -------------------------
+   Event handlers for sliders
+   ------------------------- */
+sliderBon.addEventListener('input',()=>{
+  sliderMoved = true;
+  sliderBonVal.textContent = parseFloat(sliderBon.value).toLocaleString('de-DE',{minimumFractionDigits:2,maximumFractionDigits:2});
+  const c = computeFromSliders();
+  // update summary cards: show percent for revenue always, profit percent only if base present
+  updateCards(c.addRevenue, c.addProfit, true);
 });
 
-document.getElementById("sliderBon").addEventListener('input',updateScenario);
-document.getElementById("sliderCR").addEventListener('input',updateScenario);
-document.querySelectorAll('input[type="range"]').forEach(slider=>{
-  slider.addEventListener("dblclick",()=>{if(slider.dataset.center){slider.value=slider.dataset.center;updateScenario();}});
+sliderCR.addEventListener('input',()=>{
+  sliderMoved = true;
+  sliderCRVal.textContent = parseFloat(sliderCR.value).toLocaleString('de-DE',{minimumFractionDigits:2,maximumFractionDigits:2});
+  const c = computeFromSliders();
+  updateCards(c.addRevenue, c.addProfit, true);
 });
 
-// Overlay
-document.getElementById("embedLink").addEventListener("click",e=>{
-  e.preventDefault();
-  document.getElementById("overlay").style.display="flex";
+// dblclick resets
+[sliderBon, sliderCR].forEach(s=>{
+  s.addEventListener('dblclick', ()=>{
+    if(s.dataset.center){
+      s.value = s.dataset.center;
+      sliderMoved = false;
+      sliderBonVal.textContent = parseFloat(sliderBon.value).toLocaleString('de-DE',{minimumFractionDigits:2,maximumFractionDigits:2});
+      sliderCRVal.textContent = parseFloat(sliderCR.value).toLocaleString('de-DE',{minimumFractionDigits:2,maximumFractionDigits:2});
+      // reset to zero state
+      updateCards(0,0,false);
+    }
+  });
 });
-document.getElementById("closeOverlay").addEventListener("click",()=>{document.getElementById("overlay").style.display="none";});
+
+/* -------------------------
+   Wire up inputs to setBase
+   ------------------------- */
+[baseRevenueEl, baseCREl, baseProfitEl, grossBonEl, prodCostEl, shipCostEl].forEach(el=>{
+  el.addEventListener('input', onBaseInputChangeInternal);
+});
+
+function onBaseInputChangeInternal(){
+  // keep formatting while typing already handled; just compute base
+  onBaseInputChange(); // sets base and sliders
+}
+
+/* wrapper that uses formatted input values */
+function onBaseInputChange(){
+  onBaseInputChange_raw();
+  // after base set, update totals shown in cards (initially zero)
+  if(base){
+    // show 0 initial state
+    newTotalRevenueEl.textContent = formatEUR(base.baseRevenue); // show current revenue as base on top
+    newTotalProfitEl.textContent = (base.baseProfit !== null) ? formatEUR(base.baseProfit) : formatEUR(0);
+    revDeltaEl.textContent = '0 €';
+    profitDeltaEl.textContent = '0 €';
+  }
+}
+
+/* the raw parse and set base */
+function onBaseInputChange_raw(){
+  // parse numeric values from formatted inputs
+  const revenue = parseNumberFromInput(baseRevenueEl.value);
+  const crpct = parseNumberFromInput(baseCREl.value);
+  const baseProfitRaw = parseNumberFromInput(baseProfitEl.value);
+  const gross = parseNumberFromInput(grossBonEl.value);
+  const prod = parseNumberFromInput(prodCostEl.value);
+  const ship = parseNumberFromInput(shipCostEl.value);
+
+  // if base incomplete, clear
+  if(!isFinite(revenue) || !isFinite(crpct) || !isFinite(gross)) {
+    base = null;
+    visitorsHint.style.display = 'none';
+    // disable sliders
+    sliderBon.disabled = true; sliderCR.disabled = true;
+    sliderBonVal.textContent = '–'; sliderCRVal.textContent='–';
+    newTotalRevenueEl.textContent = '0 €'; newTotalProfitEl.textContent = '0 €';
+    revDeltaEl.textContent = '0 €'; profitDeltaEl.textContent = '0 €';
+    return;
+  }
+
+  const cr = crpct/100;
+  const visitors = revenue / (cr * gross);
+
+  base = {
+    baseRevenue: revenue,
+    baseCRpct: crpct,
+    baseCR: cr,
+    baseProfit: isFinite(baseProfitRaw) ? baseProfitRaw : null,
+    grossBon: gross,
+    netBon: gross / 1.19,
+    prodCost: isFinite(prod) ? prod : 0,
+    shipCost: isFinite(ship) ? ship : 0,
+    visitors
+  };
+
+  // update netBon field formatted with two decimals
+  netBonEl.value = (base.netBon ? base.netBon.toLocaleString('de-DE',{minimumFractionDigits:2,maximumFractionDigits:2}) : '');
+
+  // show visitors under CR/Ertrag
+  visitorsHint.style.display = 'block';
+  visitorsCount.textContent = Math.round(base.visitors).toLocaleString('de-DE');
+
+  // init sliders
+  initSliders();
+
+  // reset sliderMoved flag and cards (start with zeros)
+  sliderMoved = false;
+  newTotalRevenueEl.textContent = formatEUR(base.baseRevenue);
+  newTotalProfitEl.textContent = (base.baseProfit !== null) ? formatEUR(base.baseProfit) : formatEUR(0);
+  revDeltaEl.textContent = '0 €';
+  profitDeltaEl.textContent = '0 €';
+
+  // enable sliders
+  sliderBon.disabled = false; sliderCR.disabled = false;
+}
+
+/* On page load, disable sliders */
+sliderBon.disabled = true; sliderCR.disabled = true;
+sliderBonVal.textContent = '–';
+sliderCRVal.textContent = '–';
+newTotalRevenueEl.textContent = '0 €';
+newTotalProfitEl.textContent = '0 €';
+revDeltaEl.textContent = '0 €';
+profitDeltaEl.textContent = '0 €';
+
+/* small helper: parse displayed formatted strings */
+function parseNumberFromInput(txt){
+  if(txt === undefined || txt === null) return NaN;
+  const cleaned = String(txt).replace(/\s/g,'').replace(/\./g,'').replace(',', '.').trim();
+  if(cleaned === '') return NaN;
+  const v = Number(cleaned);
+  return isFinite(v) ? v : NaN;
+}
+
+/* expose computeFromSliders for direct update usage */
+function updateScenario(){
+  // legacy hook — we use slider event handlers
+  const computed = computeFromSliders();
+  updateCards(computed.addRevenue, computed.addProfit, true);
+}
+
+/* attach manual events (already above) */
+sliderBon.addEventListener('input', ()=>{ /* handled above */ });
+sliderCR.addEventListener('input', ()=>{ /* handled above */ });
+
 </script>
-
 </body>
 </html>
