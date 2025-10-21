@@ -64,7 +64,6 @@ input[readonly]{background:#f0f0f0}
   border-radius:50%;
 }
 .radio-wrap label{cursor:pointer;margin-top:1px}
-
 .results{margin-top:26px}
 .result-grid{display:grid;gap:14px;grid-template-columns:1fr 1fr;margin-top:20px}
 .result-card{
@@ -78,7 +77,6 @@ input[readonly]{background:#f0f0f0}
 .delta.positive{color:#0a8f00}
 .delta.negative{color:#d70015}
 .subtext{font-size:0.85rem;color:#666;margin-top:4px}
-
 .slider-section{margin-top:24px;padding-top:18px;border-top:1px solid #e6e6ee}
 .slider-wrapper{margin-top:28px;margin-bottom:34px;position:relative}
 .slider-header{
@@ -114,13 +112,10 @@ input[type="range"]{
   background:#d0d0dd;
   transform:rotate(-90deg);
 }
-
 .helper{font-size:0.88rem;color:#666;margin-top:6px;text-align:left}
-
 footer{margin-top:20px;text-align:center;color:#999;font-size:13px}
 footer a{color:#0071e3;text-decoration:none}
 footer a:hover{text-decoration:underline}
-
 .overlay{
   position:fixed;top:0;left:0;width:100%;height:100%;
   background:rgba(0,0,0,0.5);
@@ -167,13 +162,13 @@ footer a:hover{text-decoration:underline}
 
     <div class="column">
       <label>Bon (Brutto, EUR)</label>
-      <input id="bonGross" type="text" placeholder="z. B. 60">
+      <input id="bonGross" type="number" step="0.01" placeholder="z. B. 60">
       <label>Bon (Netto, automatisch)</label>
       <input id="bonNet" type="text" readonly>
       <label>Herstellungskosten (EUR)</label>
-      <input id="productionCost" type="text" placeholder="z. B. 20">
+      <input id="productionCost" type="number" step="0.01" placeholder="z. B. 20">
       <label>Versand (EUR)</label>
-      <input id="shippingCost" type="text" placeholder="z. B. 5">
+      <input id="shippingCost" type="number" step="0.01" placeholder="z. B. 5">
     </div>
   </div>
 
@@ -183,7 +178,7 @@ footer a:hover{text-decoration:underline}
         <div><span class="slider-label-inline">Neuer Bon:</span> <span id="bonValue" class="slider-value">–</span></div>
         <button class="reset-btn" id="resetBon">↺</button>
       </div>
-      <input id="sliderBon" type="range" min="0" max="200" step="0.1">
+      <input id="sliderBon" type="range" min="0" max="200" step="0.01">
     </div>
 
     <div class="slider-wrapper">
@@ -230,24 +225,22 @@ function fmt(num){return isFinite(num)?num.toLocaleString("de-DE"):"–";}
 function fmt2(num){return isFinite(num)?num.toLocaleString("de-DE",{minimumFractionDigits:2,maximumFractionDigits:2}):"–";}
 let base={};
 
-// Aktualisiert Netto-Bon
 function updateNet(){
   const gross=parseNum(document.getElementById("bonGross").value);
   const net=gross/1.19;
   document.getElementById("bonNet").value=net?fmt2(net):"";
 }
 
-// Berechnet die Basiswerte
 function computeBase(){
   updateNet();
   const totalRevenue=parseNum(document.getElementById("totalRevenue").value);
   const conversionRate=(+document.getElementById("conversionRate").value||0)/100;
   const profitInput=document.getElementById("profit");
   const autoEstimate=document.getElementById("autoEstimate").checked;
-  const bonGross=parseNum(document.getElementById("bonGross").value);
+  const bonGross=+document.getElementById("bonGross").value||0;
   const bonNet=bonGross/1.19;
-  const productionCost=parseNum(document.getElementById("productionCost").value);
-  const shippingCost=parseNum(document.getElementById("shippingCost").value);
+  const productionCost=+document.getElementById("productionCost").value||0;
+  const shippingCost=+document.getElementById("shippingCost").value||0;
 
   if(!totalRevenue||!conversionRate||!bonGross) return;
 
@@ -280,11 +273,10 @@ function computeBase(){
   updateScenario();
 }
 
-// Aktualisiert Szenario
 function updateScenario(){
   if(!base.totalRevenue)return;
-  const newBon=parseFloat(document.getElementById("sliderBon").value);
-  const newCrPct=parseFloat(document.getElementById("sliderCr").value);
+  const newBon=+document.getElementById("sliderBon").value||0;
+  const newCrPct=+document.getElementById("sliderCr").value||0;
   const newCr=newCrPct/100;
 
   document.getElementById("bonValue").textContent=fmt2(newBon);
@@ -319,16 +311,19 @@ function updateScenario(){
   }
 }
 
-// Input-Listener
+// --- Input Listener: Kommas, Tausender und Slider ---
 document.querySelectorAll('#conversionRate,#profit,#bonGross,#productionCost,#shippingCost,#totalRevenue')
   .forEach(el=>{
-    el.addEventListener('input',e=>{
-      const val=e.target.value;
-      if(el.id==="totalRevenue" || el.id==="bonGross" || el.id==="productionCost" || el.id==="shippingCost"){
-        let num=parseNum(val);
-        e.target.value=num?fmt(num):"";
+    // während der Eingabe nur berechnen
+    el.addEventListener('input',computeBase);
+    // beim Verlassen formatieren
+    el.addEventListener('blur',()=>{
+      const val=parseNum(el.value);
+      if(el.id==="conversionRate"){
+        el.value = val?fmt2(val):"";
+      } else {
+        el.value = val?fmt(val):"";
       }
-      computeBase();
     });
   });
 
