@@ -12,9 +12,9 @@ h1{text-align:center;font-size:1.8rem;margin:0 0 8px}
 .input-grid{display:flex;gap:24px;flex-wrap:wrap}
 .column{flex:1;min-width:280px}
 label{display:block;margin-top:12px;margin-bottom:6px;color:#444;font-size:0.95rem}
-input[type="number"],input[readonly]{width:100%;padding:10px;border-radius:10px;border:1px solid #d2d2d7;background:#f9f9f9;box-sizing:border-box;font-size:1rem}
+input[type="number"],input[readonly],input[type="text"]{width:100%;padding:10px;border-radius:10px;border:1px solid #d2d2d7;background:#f9f9f9;box-sizing:border-box;font-size:1rem}
 input[readonly]{background:#f0f0f0}
-.radio-wrap{display:flex;align-items:center;gap:6px;margin-top:8px;font-size:0.9rem;color:#444}
+.radio-wrap{display:flex;align-items:center;gap:6px;margin-top:10px;font-size:0.9rem;color:#444}
 .results{margin-top:26px}
 .result-grid{display:grid;gap:14px;grid-template-columns:1fr 1fr;margin-top:20px}
 .result-card{background:#f6f7fb;padding:18px;border-radius:14px;text-align:center}
@@ -28,7 +28,7 @@ input[readonly]{background:#f0f0f0}
 .slider-label-inline{font-weight:600;color:#0071e3;font-size:1rem}
 .slider-value{display:inline-block;margin-left:6px;font-weight:700;color:#0071e3;white-space:nowrap}
 input[type="range"]{width:100%;accent-color:#0071e3;cursor:pointer;margin-top:8px}
-.helper{font-size:0.88rem;color:#666;margin-top:4px;text-align:center}
+.helper{font-size:0.88rem;color:#666;margin-top:6px;text-align:left}
 footer{margin-top:20px;text-align:center;color:#999;font-size:13px}
 footer a{color:#0071e3;text-decoration:none}
 footer a:hover{text-decoration:underline}
@@ -54,8 +54,8 @@ footer a:hover{text-decoration:underline}
       <label>Ertrag (optional, EUR)</label>
       <input id="profit" type="number" step="1" placeholder="z. B. 20.000">
       <div class="radio-wrap">
-        <input type="radio" id="autoEstimate" name="profitMode">
-        <label for="autoEstimate">Ertrag automatisch schätzen</label>
+        <input type="checkbox" id="autoEstimate">
+        <label for="autoEstimate">Ertrag automatisch ergänzen</label>
       </div>
       <div class="helper" id="visitorDisplay">–</div>
     </div>
@@ -121,7 +121,6 @@ function fmt2(num){return isFinite(num)?num.toLocaleString("de-DE",{minimumFract
 
 let base={};
 
-// --- Tausendertrennung bei Umsatz ---
 document.getElementById("totalRevenue").addEventListener("input",e=>{
   let value=e.target.value.replace(/\./g,"").replace(/,/g,"");
   if(isNaN(value)||value===""){e.target.value="";return;}
@@ -140,27 +139,29 @@ function computeBase(){
   updateNet();
   const totalRevenue=parseFloat(document.getElementById("totalRevenue").value.replace(/\./g,""))||0;
   const conversionRate=(+document.getElementById("conversionRate").value||0)/100;
-  const profit=+document.getElementById("profit").value||0;
+  const profitInput=document.getElementById("profit");
+  const autoEstimate=document.getElementById("autoEstimate").checked;
   const bonGross=+document.getElementById("bonGross").value||0;
   const bonNet=bonGross/1.19;
   const productionCost=+document.getElementById("productionCost").value||0;
   const shippingCost=+document.getElementById("shippingCost").value||0;
-  const autoEstimate=document.getElementById("autoEstimate").checked;
 
   if(!totalRevenue||!conversionRate||!bonGross)return;
 
   const visitors=totalRevenue/(conversionRate*bonGross);
   document.getElementById("visitorDisplay").textContent="≈ "+fmt(visitors)+" Besucher";
 
-  let profitBase=profit;
-  if(!profit && autoEstimate){
+  let profit=+profitInput.value||0;
+  if(autoEstimate){
     const costRatio=productionCost/bonNet;
     const profitPerOrder=bonNet-(bonNet*costRatio)-shippingCost;
-    profitBase=visitors*conversionRate*profitPerOrder;
-    document.getElementById("profit").value=Math.round(profitBase);
+    profit=visitors*conversionRate*profitPerOrder;
+    profitInput.value=Math.round(profit);
+  }else{
+    if(!profitInput.dataset.manualCleared){profitInput.value="";profitInput.dataset.manualCleared=true;}
   }
 
-  base={totalRevenue,conversionRate,profit:profitBase,bonGross,bonNet,productionCost,shippingCost,visitors};
+  base={totalRevenue,conversionRate,profit,bonGross,bonNet,productionCost,shippingCost,visitors};
 
   const crSlider=document.getElementById("sliderCr");
   crSlider.min=Math.max(0,(base.conversionRate*100)-5);
@@ -228,7 +229,6 @@ document.querySelectorAll('input[type="range"]').forEach(slider=>{
   slider.addEventListener("dblclick",()=>{if(slider.dataset.center){slider.value=slider.dataset.center;updateScenario();}});
 });
 
-// Overlay
 document.getElementById("embedLink").addEventListener("click",e=>{
   e.preventDefault();
   document.getElementById("overlay").style.display="flex";
