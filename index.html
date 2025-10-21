@@ -14,7 +14,7 @@ h1{text-align:center;font-size:1.8rem;margin:0 0 8px}
 label{display:block;margin-top:12px;margin-bottom:6px;color:#444;font-size:0.95rem}
 input[type="number"],input[readonly]{width:100%;padding:10px;border-radius:10px;border:1px solid #d2d2d7;background:#f9f9f9;box-sizing:border-box;font-size:1rem}
 input[readonly]{background:#f0f0f0}
-.radio-wrap{margin-top:8px;font-size:0.9rem;color:#444}
+.radio-wrap{display:flex;align-items:center;gap:6px;margin-top:8px;font-size:0.9rem;color:#444}
 .results{margin-top:26px}
 .result-grid{display:grid;gap:14px;grid-template-columns:1fr 1fr;margin-top:20px}
 .result-card{background:#f6f7fb;padding:18px;border-radius:14px;text-align:center}
@@ -101,11 +101,14 @@ function fmt2(num){return isFinite(num)?num.toLocaleString("de-DE",{minimumFract
 let base={};
 
 function updateNet(){
-  const gross=+bonGross.value||0;
-  bonNet.value=gross?fmt2(gross/1.19):"";
+  const gross=parseFloat(document.getElementById("bonGross").value)||0;
+  const net=gross/1.19;
+  const bonNet=document.getElementById("bonNet");
+  bonNet.value=net?fmt2(net):"";
 }
 
 function computeBase(){
+  updateNet();
   const totalRevenue=+document.getElementById("totalRevenue").value||0;
   const conversionRate=(+document.getElementById("conversionRate").value||0)/100;
   const profit=+document.getElementById("profit").value||0;
@@ -125,13 +128,14 @@ function computeBase(){
     const costRatio=productionCost/bonNet;
     const profitPerOrder=bonNet-(bonNet*costRatio)-shippingCost;
     profitBase=visitors*conversionRate*profitPerOrder;
+    document.getElementById("profit").value=Math.round(profitBase);
   }
 
   base={totalRevenue,conversionRate,profit:profitBase,bonGross,bonNet,productionCost,shippingCost,visitors};
 
   const crSlider=document.getElementById("sliderCr");
-  crSlider.min=Math.max(0,(base.conversionRate*100)-3);
-  crSlider.max=(base.conversionRate*100)+3;
+  crSlider.min=Math.max(0,(base.conversionRate*100)-5);
+  crSlider.max=(base.conversionRate*100)+5;
   crSlider.value=base.conversionRate*100;
   crSlider.dataset.center=crSlider.value;
 
@@ -196,7 +200,7 @@ document.getElementById("sliderCr").addEventListener("input",updateScenario);
 document.querySelectorAll('input[type="range"]').forEach(slider=>{
   slider.addEventListener("dblclick",()=>{if(slider.dataset.center){slider.value=slider.dataset.center;updateScenario();}});
 });
-document.getElementById("bonGross").addEventListener("input",updateNet);
+document.getElementById("bonGross").addEventListener("input",()=>{updateNet();computeBase();});
 </script>
 
 </body>
