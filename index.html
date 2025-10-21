@@ -5,233 +5,146 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Umsatz- & Ertrags-Simulator</title>
 <style>
-body{
-  font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text",Roboto,Arial,sans-serif;
-  background:#f4f4f6;
-  padding:20px;
-}
-.simulator{
-  max-width:950px;
-  margin:40px auto;
-  background:#fff;
-  border-radius:24px;
-  box-shadow:0 8px 20px rgba(0,0,0,0.08);
-  padding:28px;
-  color:#111;
-  position:relative;
-}
+body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text",Roboto,Arial,sans-serif;background:#f4f4f6;padding:20px;}
+.simulator{max-width:950px;margin:40px auto;background:#fff;border-radius:24px;box-shadow:0 8px 20px rgba(0,0,0,0.08);padding:28px;color:#111;position:relative;}
 h1{text-align:center;font-size:1.8rem;margin:0 0 8px}
 .subtitle{text-align:center;color:#666;margin-bottom:22px}
 .input-grid{display:flex;gap:24px;flex-wrap:wrap}
 .column{flex:1;min-width:280px}
 label{display:block;margin-top:12px;margin-bottom:6px;color:#444;font-size:0.95rem}
-input[type="number"],input[readonly],input[type="text"]{
-  width:100%;
-  padding:10px;
-  border-radius:10px;
-  border:1px solid #d2d2d7;
-  background:#f9f9f9;
-  box-sizing:border-box;
-  font-size:1rem;
-}
+input[type="number"],input[readonly],input[type="text"]{width:100%;padding:10px;border-radius:10px;border:1px solid #d2d2d7;background:#f9f9f9;box-sizing:border-box;font-size:1rem;}
 input[readonly]{background:#f0f0f0}
-.radio-wrap{
-  display:flex;
-  align-items:center;
-  gap:6px;
-  margin-top:10px;
-  font-size:0.9rem;
-  color:#999;
-}
-.radio-wrap input[type="checkbox"]{
-  appearance:none;
-  width:18px;
-  height:18px;
-  border:2px solid #999;
-  border-radius:50%;
-  position:relative;
-  cursor:pointer;
-  display:inline-flex;
-  align-items:center;
-  justify-content:center;
-}
-.radio-wrap input[type="checkbox"]:checked::after{
-  content:"";
-  width:8px;
-  height:8px;
-  background:#999;
-  border-radius:50%;
-}
+.radio-wrap{display:flex;align-items:center;gap:6px;margin-top:10px;font-size:0.9rem;color:#444;}
+.radio-wrap input[type="checkbox"]{appearance:none;width:18px;height:18px;border:2px solid #999;border-radius:50%;position:relative;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;margin-top:0;}
+.radio-wrap input[type="checkbox"]:checked::after{content:"";width:8px;height:8px;background:#999;border-radius:50%;}
 .radio-wrap label{cursor:pointer;margin-top:1px}
-
 .results{margin-top:26px}
 .result-grid{display:grid;gap:14px;grid-template-columns:1fr 1fr;margin-top:20px}
-.result-card{
-  background:#f6f7fb;
-  padding:18px;
-  border-radius:14px;
-  text-align:center;
-}
+.result-card{background:#f6f7fb;padding:18px;border-radius:14px;text-align:center;}
 .result-card h2{margin:8px 0;font-size:1.8rem;color:#0071e3}
 .delta{font-size:0.85rem;margin-top:4px}
 .delta.positive{color:#0a8f00}
 .delta.negative{color:#d70015}
 .subtext{font-size:0.85rem;color:#666;margin-top:4px}
-
 .slider-section{margin-top:24px;padding-top:18px;border-top:1px solid #e6e6ee}
 .slider-wrapper{margin-top:28px;margin-bottom:34px;position:relative}
-.slider-header{
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-  margin-bottom:6px;
-}
+.slider-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;}
 .slider-label-inline{font-weight:600;color:#0071e3;font-size:1rem}
 .slider-value{font-weight:700;color:#0071e3;white-space:nowrap}
-input[type="range"]{
-  width:100%;
-  accent-color:#0071e3;
-  cursor:pointer;
-  margin-top:8px;
-}
-.reset-btn{
-  border:none;
-  border-radius:50%;
-  background:#e6e6ee;
-  color:#0071e3;
-  font-weight:bold;
-  cursor:pointer;
-  width:28px;
-  height:28px;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  transition:0.2s;
-  box-shadow:0 1px 3px rgba(0,0,0,0.1);
-}
-.reset-btn:hover{
-  background:#d0d0dd;
-  transform:rotate(-90deg);
-}
-
+input[type="range"]{width:100%;accent-color:#0071e3;cursor:pointer;margin-top:8px;}
+.reset-btn{border:none;border-radius:50%;background:#e6e6ee;color:#0071e3;font-weight:bold;cursor:pointer;width:28px;height:28px;display:flex;align-items:center;justify-content:center;transition:0.2s;box-shadow:0 1px 3px rgba(0,0,0,0.1);}
+.reset-btn:hover{background:#d0d0dd;transform:rotate(-90deg);}
 .helper{font-size:0.88rem;color:#666;margin-top:6px;text-align:left}
-
 footer{margin-top:20px;text-align:center;color:#999;font-size:13px}
 footer a{color:#0071e3;text-decoration:none}
 footer a:hover{text-decoration:underline}
-.overlay{
-  position:fixed;top:0;left:0;width:100%;height:100%;
-  background:rgba(0,0,0,0.5);
-  display:none;justify-content:center;align-items:center;z-index:999;
-}
-.overlay-content{
-  background:#fff;padding:24px;border-radius:16px;width:90%;max-width:600px;
-  box-shadow:0 10px 30px rgba(0,0,0,0.2);
-}
-.overlay-content textarea{
-  width:100%;height:120px;font-family:monospace;
-  border-radius:8px;border:1px solid #ccc;padding:8px;
-}
-.close-btn{
-  background:#0071e3;color:white;border:none;padding:8px 16px;
-  border-radius:8px;margin-top:12px;cursor:pointer;
-}
+.overlay{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);display:none;justify-content:center;align-items:center;z-index:999;}
+.overlay-content{background:#fff;padding:24px;border-radius:16px;width:90%;max-width:600px;box-shadow:0 10px 30px rgba(0,0,0,0.2);}
+.overlay-content textarea{width:100%;height:120px;font-family:monospace;border-radius:8px;border:1px solid #ccc;padding:8px;}
+.close-btn{background:#0071e3;color:white;border:none;padding:8px 16px;border-radius:8px;margin-top:12px;cursor:pointer;}
 .close-btn:hover{background:#0a84ff}
-@media(max-width:700px){
-  .result-grid{grid-template-columns:1fr;}
-}
+@media(max-width:700px){.result-grid{grid-template-columns:1fr;}}
 </style>
 </head>
 <body>
 
 <div class="simulator">
-  <h1>Umsatz- & Ertrags-Simulator</h1>
-  <p class="subtitle">Simuliere, wie sich Änderungen bei Bon und Conversion Rate auf Umsatz & Ertrag auswirken.</p>
+<h1>Umsatz- & Ertrags-Simulator</h1>
+<p class="subtitle">Simuliere, wie sich Änderungen bei Bon und Conversion Rate auf Umsatz & Ertrag auswirken.</p>
 
-  <div class="input-grid">
-    <div class="column">
-      <label>Gesamtumsatz (EUR)</label>
-      <input id="totalRevenue" type="text" placeholder="z. B. 120.000">
-      <label>Conversion Rate (%)</label>
-      <input id="conversionRate" type="number" step="0.01" placeholder="z. B. 2">
-      <label>Ertrag (optional, EUR)</label>
-      <input id="profit" type="text" placeholder="z. B. 20.000">
-      <div class="radio-wrap">
-        <input type="checkbox" id="autoEstimate">
-        <label for="autoEstimate">Ertrag automatisch ergänzen</label>
-      </div>
-      <div class="helper" id="visitorDisplay">–</div>
-    </div>
+<div class="input-grid">
+<div class="column">
+<label>Gesamtumsatz (EUR)</label>
+<input id="totalRevenue" type="text" placeholder="z. B. 120.000">
+<label>Conversion Rate (%)</label>
+<input id="conversionRate" type="number" step="0.01" placeholder="z. B. 2">
+<label>Ertrag (optional, EUR)</label>
+<input id="profit" type="text" placeholder="z. B. 20.000">
+<div class="radio-wrap">
+<input type="checkbox" id="autoEstimate">
+<label for="autoEstimate">Ertrag automatisch ergänzen</label>
+</div>
+<div class="helper" id="visitorDisplay">–</div>
+</div>
 
-    <div class="column">
-      <label>Bon (Brutto, EUR)</label>
-      <input id="bonGross" type="text" placeholder="z. B. 60">
-      <label>Bon (Netto, automatisch)</label>
-      <input id="bonNet" type="text" readonly>
-      <label>Herstellungskosten (EUR)</label>
-      <input id="productionCost" type="text" placeholder="z. B. 20">
-      <label>Versand (EUR)</label>
-      <input id="shippingCost" type="text" placeholder="z. B. 5">
-    </div>
-  </div>
+<div class="column">
+<label>Bon (Brutto, EUR)</label>
+<input id="bonGross" type="text" placeholder="z. B. 60">
+<label>Bon (Netto, automatisch)</label>
+<input id="bonNet" type="text" readonly>
+<label>Herstellungskosten (EUR)</label>
+<input id="productionCost" type="text" placeholder="z. B. 20">
+<label>Versand (EUR)</label>
+<input id="shippingCost" type="text" placeholder="z. B. 5">
+</div>
+</div>
 
-  <div class="slider-section">
-    <div class="slider-wrapper">
-      <div class="slider-header">
-        <div><span class="slider-label-inline">Neuer Bon:</span> <span id="bonValue" class="slider-value">–</span></div>
-        <button class="reset-btn" id="resetBon">↺</button>
-      </div>
-      <input id="sliderBon" type="range" min="0" max="200" step="0.1">
-    </div>
+<div class="slider-section">
+<div class="slider-wrapper">
+<div class="slider-header">
+<div><span class="slider-label-inline">Neuer Bon:</span> <span id="bonValue" class="slider-value">–</span></div>
+<button class="reset-btn" id="resetBon">↺</button>
+</div>
+<input id="sliderBon" type="range" min="0" max="200" step="0.1">
+</div>
 
-    <div class="slider-wrapper">
-      <div class="slider-header">
-        <div><span class="slider-label-inline">Neue Conversion Rate:</span> <span id="crValue" class="slider-value">–</span></div>
-        <button class="reset-btn" id="resetCr">↺</button>
-      </div>
-      <input id="sliderCr" type="range" min="0" max="10" step="0.01">
-    </div>
+<div class="slider-wrapper">
+<div class="slider-header">
+<div><span class="slider-label-inline">Neue Conversion Rate:</span> <span id="crValue" class="slider-value">–</span></div>
+<button class="reset-btn" id="resetCr">↺</button>
+</div>
+<input id="sliderCr" type="range" min="0" max="10" step="0.01">
+</div>
 
-    <div class="result-grid">
-      <div class="result-card">
-        <p>Zusatz-Umsatz</p>
-        <h2 id="deltaRevenueAbs">–</h2>
-        <div id="deltaRevenueRel" class="delta"></div>
-        <div id="newRevenueTotal" class="subtext"></div>
-      </div>
-      <div class="result-card">
-        <p>Zusatz-Ertrag</p>
-        <h2 id="deltaProfitAbs">–</h2>
-        <div id="deltaProfitRel" class="delta"></div>
-        <div id="newProfitTotal" class="subtext"></div>
-      </div>
-    </div>
-  </div>
+<div class="result-grid">
+<div class="result-card">
+<p>Zusatz-Umsatz</p>
+<h2 id="deltaRevenueAbs">–</h2>
+<div id="deltaRevenueRel" class="delta"></div>
+<div id="newRevenueTotal" class="subtext"></div>
+</div>
+<div class="result-card">
+<p>Zusatz-Ertrag</p>
+<h2 id="deltaProfitAbs">–</h2>
+<div id="deltaProfitRel" class="delta"></div>
+<div id="newProfitTotal" class="subtext"></div>
+</div>
+</div>
+</div>
 
-  <footer>
-    <a href="#" id="embedLink"><strong>🔗 Rechner einbetten / teilen</strong></a> – entwickelt von 
-    <a href="https://www.purple-noon.de" target="_blank">Purple Noon</a>
-  </footer>
+<footer>
+<a href="#" id="embedLink"><strong>🔗 Rechner einbetten / teilen</strong></a> – entwickelt von <a href="https://www.purple-noon.de" target="_blank">Purple Noon</a>
+</footer>
 </div>
 
 <div class="overlay" id="overlay">
-  <div class="overlay-content">
-    <h3>Einbettungscode:</h3>
-    <textarea readonly><iframe src="https://p-noon.github.io/marketing-hebel-rechner/" width="100%" height="950" style="border:none;"></iframe></textarea>
-    <button class="close-btn" id="closeOverlay">Schließen</button>
-  </div>
+<div class="overlay-content">
+<h3>Einbettungscode:</h3>
+<textarea readonly><iframe src="https://p-noon.github.io/marketing-hebel-rechner/" width="100%" height="950" style="border:none;"></iframe></textarea>
+<button class="close-btn" id="closeOverlay">Schließen</button>
+</div>
 </div>
 
 <script>
 function parseNum(v){return parseFloat((v||"").toString().replace(/\./g,"").replace(",",".").trim())||0;}
 function fmt(num){return isFinite(num)?num.toLocaleString("de-DE"):"–";}
 function fmt2(num){return isFinite(num)?num.toLocaleString("de-DE",{minimumFractionDigits:2,maximumFractionDigits:2}):"–";}
-
 let base={};
 
 function formatInput(el){
-  el.value=el.value.replace(/[^\d,]/g,"");
+  el.addEventListener("input",()=>{
+    const val=el.value.replace(/[^\d,]/g,"");
+    el.value=val;
+  });
+  el.addEventListener("blur",()=>{
+    const n=parseNum(el.value);
+    el.value=n?fmt(n):"";
+  });
 }
+
+["totalRevenue","bonGross","productionCost","shippingCost","profit"].forEach(id=>{
+  formatInput(document.getElementById(id));
+});
 
 function updateNet(){
   const gross=parseNum(document.getElementById("bonGross").value);
@@ -258,7 +171,7 @@ function computeBase(){
   if(autoEstimate){
     const costRatio=productionCost/bonNet;
     const profitPerOrder=bonNet-(bonNet*costRatio)-shippingCost;
-    profitInput.value=Math.round(visitors*conversionRate*profitPerOrder);
+    profitInput.value=fmt(Math.round(visitors*conversionRate*profitPerOrder));
   }
 
   base={totalRevenue,conversionRate,profit:parseNum(profitInput.value),bonGross,bonNet,productionCost,shippingCost,visitors};
@@ -308,50 +221,34 @@ function updateScenario(){
   document.getElementById("deltaRevenueRel").className="delta "+(deltaRevenue>=0?"positive":"negative");
   document.getElementById("newRevenueTotal").textContent="Gesamt: "+fmt(newRevenue)+" €";
 
-  document.getElementById("deltaProfitAbs").textContent=(deltaProfit>=0?"+":"")+fmt(deltaProfit)+" €";
+  document.getElementById("deltaProfitAbs").textContent=(deltaProfit>=0?"+":"")+fmt(newProfit-baseProfit)+" €";
   if(base.profit){
     document.getElementById("deltaProfitRel").textContent=(deltaProfit>=0?"+":"")+fmt2(deltaProfitPct)+" %";
     document.getElementById("deltaProfitRel").className="delta "+(deltaProfit>=0?"positive":"negative");
     document.getElementById("newProfitTotal").textContent="Gesamt: "+fmt(newProfit)+" €";
-  }else{
+  } else {
     document.getElementById("deltaProfitRel").textContent="";
     document.getElementById("newProfitTotal").textContent="";
   }
 }
 
-// Inputs
-document.querySelectorAll('#totalRevenue,#conversionRate,#profit,#bonGross,#productionCost,#shippingCost').forEach(el=>{
-  el.addEventListener('input',()=>formatInput(el));
-  el.addEventListener('blur',computeBase);
+// Event-Listener
+["conversionRate","sliderBon","sliderCr","resetBon","resetCr"].forEach(id=>{
+  document.getElementById(id).addEventListener("input",updateScenario);
 });
+document.getElementById("resetBon").addEventListener("click",()=>{document.getElementById("sliderBon").value=document.getElementById("sliderBon").dataset.center;updateScenario();});
+document.getElementById("resetCr").addEventListener("click",()=>{document.getElementById("sliderCr").value=document.getElementById("sliderCr").dataset.center;updateScenario();});
+
+document.querySelectorAll("#totalRevenue,#conversionRate,#profit,#bonGross,#productionCost,#shippingCost")
+.forEach(el=>el.addEventListener("blur",computeBase));
 
 document.getElementById("autoEstimate").addEventListener("change", ()=>{
   const profitInput=document.getElementById("profit");
-  if(!document.getElementById("autoEstimate").checked){
-    profitInput.value="";
-  }
+  if(!document.getElementById("autoEstimate").checked) profitInput.value="";
   computeBase();
 });
 
-// Sliders
-document.getElementById("sliderBon").addEventListener("input",updateScenario);
-document.getElementById("sliderCr").addEventListener("input",updateScenario);
-
-// Reset buttons
-document.getElementById("resetBon").addEventListener("click",()=>{
-  document.getElementById("sliderBon").value=document.getElementById("sliderBon").dataset.center;
-  updateScenario();
-});
-document.getElementById("resetCr").addEventListener("click",()=>{
-  document.getElementById("sliderCr").value=document.getElementById("sliderCr").dataset.center;
-  updateScenario();
-});
-
-// Overlay
-document.getElementById("embedLink").addEventListener("click",e=>{
-  e.preventDefault();
-  document.getElementById("overlay").style.display="flex";
-});
+document.getElementById("embedLink").addEventListener("click",e=>{e.preventDefault();document.getElementById("overlay").style.display="flex";});
 document.getElementById("closeOverlay").addEventListener("click",()=>{document.getElementById("overlay").style.display="none";});
 </script>
 </body>
