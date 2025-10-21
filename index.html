@@ -14,9 +14,9 @@ h1{text-align:center;font-size:1.8rem;margin:0 0 8px}
 label{display:block;margin-top:12px;margin-bottom:6px;color:#444;font-size:0.95rem}
 input[type="number"],input[readonly],input[type="text"]{width:100%;padding:10px;border-radius:10px;border:1px solid #d2d2d7;background:#f9f9f9;box-sizing:border-box;font-size:1rem}
 input[readonly]{background:#f0f0f0}
-.radio-wrap{display:flex;align-items:center;gap:6px;margin-top:10px;font-size:0.9rem;color:#444}
-.radio-wrap input[type="checkbox"]{width:18px;height:18px;border-radius:50%;accent-color:#0071e3;margin:0;cursor:pointer}
-.radio-wrap label{display:inline-block;vertical-align:middle;cursor:pointer}
+.radio-wrap{display:flex;align-items:center;justify-content:flex-start;gap:8px;margin-top:10px;font-size:0.9rem;color:#444}
+.radio-wrap input[type="checkbox"]{appearance:none;width:18px;height:18px;border:2px solid #0071e3;border-radius:50%;position:relative;cursor:pointer}
+.radio-wrap input[type="checkbox"]:checked::after{content:"";position:absolute;top:3px;left:3px;width:8px;height:8px;background:#0071e3;border-radius:50%}
 .results{margin-top:26px}
 .result-grid{display:grid;gap:14px;grid-template-columns:1fr 1fr;margin-top:20px}
 .result-card{background:#f6f7fb;padding:18px;border-radius:14px;text-align:center}
@@ -30,6 +30,8 @@ input[readonly]{background:#f0f0f0}
 .slider-label-inline{font-weight:600;color:#0071e3;font-size:1rem}
 .slider-value{display:inline-block;margin-left:6px;font-weight:700;color:#0071e3;white-space:nowrap}
 input[type="range"]{width:100%;accent-color:#0071e3;cursor:pointer;margin-top:8px}
+.reset-btn{position:absolute;right:0;top:10px;width:26px;height:26px;border:none;border-radius:50%;background:#e6e6ee;color:#0071e3;font-weight:bold;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:0.2s}
+.reset-btn:hover{background:#d0d0dd}
 .helper{font-size:0.88rem;color:#666;margin-top:6px;text-align:left}
 footer{margin-top:20px;text-align:center;color:#999;font-size:13px}
 footer a{color:#0071e3;text-decoration:none}
@@ -39,6 +41,10 @@ footer a:hover{text-decoration:underline}
 .overlay-content textarea{width:100%;height:120px;font-family:monospace;border-radius:8px;border:1px solid #ccc;padding:8px}
 .close-btn{background:#0071e3;color:white;border:none;padding:8px 16px;border-radius:8px;margin-top:12px;cursor:pointer}
 .close-btn:hover{background:#0a84ff}
+
+@media(max-width:700px){
+  .result-grid{grid-template-columns:1fr;}
+}
 </style>
 </head>
 <body>
@@ -78,12 +84,14 @@ footer a:hover{text-decoration:underline}
     <div class="slider-wrapper">
       <span class="slider-label-inline">Neuer Bon:</span>
       <span id="bonValue" class="slider-value">–</span>
+      <button class="reset-btn" id="resetBon">↺</button>
       <input id="sliderBon" type="range" min="0" max="200" step="0.1">
     </div>
 
     <div class="slider-wrapper">
       <span class="slider-label-inline">Neue Conversion Rate:</span>
       <span id="crValue" class="slider-value">–</span>
+      <button class="reset-btn" id="resetCr">↺</button>
       <input id="sliderCr" type="range" min="0" max="10" step="0.01">
     </div>
 
@@ -118,20 +126,21 @@ footer a:hover{text-decoration:underline}
 </div>
 
 <script>
-function fmt(num){return isFinite(num)?num.toLocaleString("de-DE",{minimumFractionDigits:0,maximumFractionDigits:0}):"–";}
+function parseNum(v){return parseFloat((v||"").toString().replace(/\./g,"").replace(",",".").trim())||0;}
+function fmt(num){return isFinite(num)?num.toLocaleString("de-DE"):"–";}
 function fmt2(num){return isFinite(num)?num.toLocaleString("de-DE",{minimumFractionDigits:2,maximumFractionDigits:2}):"–";}
 
 let base={};
 
 function updateNet(){
-  const gross=parseFloat(document.getElementById("bonGross").value)||0;
+  const gross=parseNum(document.getElementById("bonGross").value);
   const net=gross/1.19;
   document.getElementById("bonNet").value=net?fmt2(net):"";
 }
 
 function computeBase(){
   updateNet();
-  const totalRevenue=parseFloat(document.getElementById("totalRevenue").value.replace(/\./g,""))||0;
+  const totalRevenue=parseNum(document.getElementById("totalRevenue").value);
   const conversionRate=(+document.getElementById("conversionRate").value||0)/100;
   const profitInput=document.getElementById("profit");
   const autoEstimate=document.getElementById("autoEstimate").checked;
@@ -210,8 +219,16 @@ function updateScenario(){
   }
 }
 
-document.querySelectorAll('#conversionRate,#profit,#bonGross,#productionCost,#shippingCost')
-  .forEach(el=>el.addEventListener('input',computeBase));
+document.querySelectorAll('#conversionRate,#profit,#bonGross,#productionCost,#shippingCost,#totalRevenue')
+  .forEach(el=>{
+    el.addEventListener('input',e=>{
+      if(el.id==="totalRevenue"){
+        let val=e.target.value.replace(/\./g,"").replace(/\D/g,"");
+        e.target.value=val?parseInt(val).toLocaleString("de-DE"):"";
+      }
+      computeBase();
+    });
+  });
 
 document.getElementById("autoEstimate").addEventListener("change", ()=>{
   const profitInput=document.getElementById("profit");
@@ -223,8 +240,14 @@ document.getElementById("autoEstimate").addEventListener("change", ()=>{
 
 document.getElementById("sliderBon").addEventListener("input",updateScenario);
 document.getElementById("sliderCr").addEventListener("input",updateScenario);
-document.querySelectorAll('input[type="range"]').forEach(slider=>{
-  slider.addEventListener("dblclick",()=>{if(slider.dataset.center){slider.value=slider.dataset.center;updateScenario();}});
+
+document.getElementById("resetBon").addEventListener("click",()=>{
+  document.getElementById("sliderBon").value=document.getElementById("sliderBon").dataset.center;
+  updateScenario();
+});
+document.getElementById("resetCr").addEventListener("click",()=>{
+  document.getElementById("sliderCr").value=document.getElementById("sliderCr").dataset.center;
+  updateScenario();
 });
 
 document.getElementById("embedLink").addEventListener("click",e=>{
