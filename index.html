@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Umsatz- & Ertrags-Simulator</title>
 <style>
-body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text",Roboto,Arial,sans-serif;background:#f4f4f6;padding:20px}
+body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text",Roboto,sans-serif;background:#f4f4f6;padding:20px}
 .simulator{max-width:950px;margin:40px auto;background:#fff;border-radius:24px;box-shadow:0 8px 20px rgba(0,0,0,0.08);padding:28px;color:#111;position:relative}
 h1{text-align:center;font-size:1.8rem;margin:0 0 8px}
 .subtitle{text-align:center;color:#666;margin-bottom:22px}
@@ -52,9 +52,9 @@ footer a:hover{text-decoration:underline}
       <label>Gesamtumsatz (EUR)</label>
       <input id="totalRevenue" type="text" placeholder="z. B. 120.000">
       <label>Conversion Rate (%)</label>
-      <input id="conversionRate" type="text" placeholder="z. B. 2">
+      <input id="conversionRate" type="number" step="0.01" placeholder="z. B. 2">
       <label>Ertrag (optional, EUR)</label>
-      <input id="profit" type="text" placeholder="z. B. 20.000">
+      <input id="profit" type="number" step="1" placeholder="z. B. 20.000">
       <div class="radio-wrap">
         <input type="checkbox" id="autoEstimate">
         <label for="autoEstimate">Ertrag automatisch ergänzen</label>
@@ -64,13 +64,13 @@ footer a:hover{text-decoration:underline}
 
     <div class="column">
       <label>Bon (Brutto, EUR)</label>
-      <input id="bonGross" type="text" placeholder="z. B. 60">
+      <input id="bonGross" type="number" step="0.01" placeholder="z. B. 60">
       <label>Bon (Netto, automatisch)</label>
       <input id="bonNet" type="text" readonly>
       <label>Herstellungskosten (EUR)</label>
-      <input id="productionCost" type="text" placeholder="z. B. 20">
+      <input id="productionCost" type="number" step="0.01" placeholder="z. B. 20">
       <label>Versand (EUR)</label>
-      <input id="shippingCost" type="text" placeholder="z. B. 5">
+      <input id="shippingCost" type="number" step="0.01" placeholder="z. B. 5">
     </div>
   </div>
 
@@ -118,127 +118,122 @@ footer a:hover{text-decoration:underline}
 </div>
 
 <script>
-// Konvertiert Eingabe automatisch: Komma -> Punkt, nur gültige Zahlen
-function parseInput(id){
-  let val = document.getElementById(id).value.replace(",",".").replace(/[^\d.-]/g,"");
-  return parseFloat(val) || 0;
-}
-
-// Formatierungen
+// Formatierung
 function fmt(num){return isFinite(num)?num.toLocaleString("de-DE",{minimumFractionDigits:0,maximumFractionDigits:0}):"–";}
 function fmt2(num){return isFinite(num)?num.toLocaleString("de-DE",{minimumFractionDigits:2,maximumFractionDigits:2}):"–";}
 
-// Basiswerte
+// Base Daten in Cent
 let base={};
 
-// Netto Bon
 function updateNet(){
-  const gross=parseInput("bonGross");
-  const net=gross/1.19;
-  document.getElementById("bonNet").value = net ? fmt2(net) : "";
+  const gross = Math.round((parseFloat(document.getElementById("bonGross").value.replace(",","."))||0)*100);
+  const net = Math.round(gross/1.19);
+  document.getElementById("bonNet").value = net/100;
 }
 
-// Berechnung Basis
 function computeBase(){
   updateNet();
-  const totalRevenue=parseInput("totalRevenue");
-  const conversionRate=parseInput("conversionRate")/100;
-  const profit=parseInput("profit");
-  const bonGross=parseInput("bonGross");
-  const bonNet=bonGross/1.19;
-  const productionCost=parseInput("productionCost");
-  const shippingCost=parseInput("shippingCost");
+  const totalRevenue = parseFloat(document.getElementById("totalRevenue").value.replace(/\./g,"").replace(",", "."))||0;
+  const conversionRate=(+document.getElementById("conversionRate").value||0)/100;
+  const profitInput=document.getElementById("profit");
+  const autoEstimate=document.getElementById("autoEstimate").checked;
+  const bonGross = Math.round((parseFloat(document.getElementById("bonGross").value.replace(",", "."))||0)*100);
+  const bonNet = Math.round(bonGross/1.19);
+  const productionCost = Math.round((+document.getElementById("productionCost").value||0)*100);
+  const shippingCost = Math.round((+document.getElementById("shippingCost").value||0)*100);
 
-  if(!totalRevenue || !conversionRate || !bonGross) return;
+  if(!totalRevenue||!conversionRate||!bonGross) return;
 
-  const visitors=totalRevenue/(conversionRate*bonGross);
-  document.getElementById("visitorDisplay").textContent="≈ "+fmt(visitors)+" Besucher";
+  const visitors = totalRevenue*100/(conversionRate*bonGross); // alles in Cent
+  document.getElementById("visitorDisplay").textContent = "≈ "+fmt(Math.round(visitors))+" Besucher";
 
-  // Auto-Ertrag
-  if(document.getElementById("autoEstimate").checked){
-    const costRatio=productionCost/bonNet;
-    const profitPerOrder=bonNet-(bonNet*costRatio)-shippingCost;
-    document.getElementById("profit").value=Math.round(visitors*conversionRate*profitPerOrder);
+  if(autoEstimate){
+    const costRatio = productionCost/bonNet;
+    const profitPerOrder = bonNet - Math.round(bonNet*costRatio) - shippingCost;
+    profitInput.value = Math.round(visitors*conversionRate*profitPerOrder/100);
   }
 
-  base={totalRevenue,conversionRate,profit:parseInput("profit"),bonGross,bonNet,productionCost,shippingCost,visitors};
+  base={totalRevenue,conversionRate,profit:+profitInput.value||0,bonGross,bonNet,productionCost,shippingCost,visitors};
 
-  // Slider Setup
-  const crSlider=document.getElementById("sliderCr");
-  crSlider.min=Math.max(0,(base.conversionRate*100)-5);
-  crSlider.max=(base.conversionRate*100)+5;
-  crSlider.value=base.conversionRate*100;
-  crSlider.dataset.center=crSlider.value;
+  const crSlider = document.getElementById("sliderCr");
+  crSlider.min = Math.max(0,(base.conversionRate*100)-5);
+  crSlider.max = (base.conversionRate*100)+5;
+  crSlider.value = base.conversionRate*100;
+  crSlider.dataset.center = crSlider.value;
 
-  const bonSlider=document.getElementById("sliderBon");
-  bonSlider.min=base.bonGross*0.5;
-  bonSlider.max=base.bonGross*1.5;
-  bonSlider.value=base.bonGross;
-  bonSlider.dataset.center=bonSlider.value;
+  const bonSlider = document.getElementById("sliderBon");
+  bonSlider.min = base.bonGross*0.5/100;
+  bonSlider.max = base.bonGross*1.5/100;
+  bonSlider.value = base.bonGross/100;
+  bonSlider.dataset.center = bonSlider.value;
 
-  document.getElementById("bonValue").textContent=base.bonGross.toFixed(2);
-  document.getElementById("crValue").textContent=(base.conversionRate*100).toFixed(2);
+  document.getElementById("bonValue").textContent = fmt2(base.bonGross/100);
+  document.getElementById("crValue").textContent = fmt2(base.conversionRate*100);
 
   updateScenario();
 }
 
-// Szenario aktualisieren
 function updateScenario(){
   if(!base.totalRevenue) return;
 
-  const newBon=parseInput("sliderBon");
-  const newCr=parseInput("sliderCr")/100;
+  let newBon = Math.round((+document.getElementById("sliderBon").value||0)*100);
+  let newCrPct = +document.getElementById("sliderCr").value||0;
+  let newCr = newCrPct/100;
 
-  document.getElementById("bonValue").textContent=newBon.toFixed(2);
-  document.getElementById("crValue").textContent=(newCr*100).toFixed(2);
+  document.getElementById("bonValue").textContent = fmt2(newBon/100);
+  document.getElementById("crValue").textContent = fmt2(newCrPct);
 
-  const visitors=base.visitors;
-  const newRevenue=visitors*newCr*newBon;
-  const deltaRevenue=newRevenue-base.totalRevenue;
-  const deltaRevenuePct=(deltaRevenue/base.totalRevenue)*100;
+  const visitors = base.visitors;
+  const newRevenue = visitors*newCr*newBon/100;
+  const deltaRevenue = newRevenue-base.totalRevenue;
+  const deltaRevenuePct = (deltaRevenue/base.totalRevenue)*100;
 
-  const costRatio=base.productionCost/base.bonNet;
-  const profitPerOrderNew=(newBon/1.19)-((newBon/1.19)*costRatio)-base.shippingCost;
-  const profitPerOrderBase=base.bonNet-(base.bonNet*costRatio)-base.shippingCost;
-  const newProfit=visitors*newCr*profitPerOrderNew;
-  const baseProfit=visitors*base.conversionRate*profitPerOrderBase;
-  const deltaProfit=newProfit-baseProfit;
-  const deltaProfitPct=base.profit?(deltaProfit/base.profit)*100:null;
+  const costRatio = base.productionCost/base.bonNet;
+  const profitPerOrderNew = Math.round(newBon/1.19) - Math.round(Math.round(newBon/1.19)*costRatio) - base.shippingCost;
+  const profitPerOrderBase = base.bonNet - Math.round(base.bonNet*costRatio) - base.shippingCost;
+  const newProfit = visitors*newCr*profitPerOrderNew/100;
+  const baseProfit = visitors*base.conversionRate*profitPerOrderBase/100;
+  const deltaProfit = newProfit-baseProfit;
+  const deltaProfitPct = base.profit ? (deltaProfit/base.profit)*100 : null;
 
-  document.getElementById("deltaRevenueAbs").textContent=(deltaRevenue>=0?"+":"")+fmt(deltaRevenue)+" €";
-  document.getElementById("deltaRevenueRel").textContent=(deltaRevenue>=0?"+":"")+fmt2(deltaRevenuePct)+" %";
+  document.getElementById("deltaRevenueAbs").textContent = (deltaRevenue>=0?"+":"")+fmt(Math.round(deltaRevenue))+" €";
+  document.getElementById("deltaRevenueRel").textContent = (deltaRevenue>=0?"+":"")+fmt2(deltaRevenuePct)+" %";
   document.getElementById("deltaRevenueRel").className="delta "+(deltaRevenue>=0?"positive":"negative");
-  document.getElementById("newRevenueTotal").textContent="Gesamt: "+fmt(newRevenue)+" €";
+  document.getElementById("newRevenueTotal").textContent = "Gesamt: "+fmt(Math.round(newRevenue))+" €";
 
-  document.getElementById("deltaProfitAbs").textContent=(deltaProfit>=0?"+":"")+fmt(deltaProfit)+" €";
+  document.getElementById("deltaProfitAbs").textContent = (deltaProfit>=0?"+":"")+fmt(Math.round(deltaProfit))+" €";
   if(base.profit){
     document.getElementById("deltaProfitRel").textContent=(deltaProfit>=0?"+":"")+fmt2(deltaProfitPct)+" %";
     document.getElementById("deltaProfitRel").className="delta "+(deltaProfit>=0?"positive":"negative");
-    document.getElementById("newProfitTotal").textContent="Gesamt: "+fmt(newProfit)+" €";
+    document.getElementById("newProfitTotal").textContent="Gesamt: "+fmt(Math.round(newProfit))+" €";
   }else{
     document.getElementById("deltaProfitRel").textContent="";
     document.getElementById("newProfitTotal").textContent="";
   }
 }
 
-// Event-Listener
-['totalRevenue','conversionRate','profit','bonGross','productionCost','shippingCost'].forEach(id=>{
-  document.getElementById(id).addEventListener('input',computeBase);
-});
-document.getElementById("autoEstimate").addEventListener("change",()=>{
-  if(!document.getElementById("autoEstimate").checked) document.getElementById("profit").value="";
+document.querySelectorAll('#conversionRate,#profit,#bonGross,#productionCost,#shippingCost')
+  .forEach(el=>el.addEventListener('input',computeBase));
+
+document.getElementById("autoEstimate").addEventListener("change", ()=>{
+  const profitInput=document.getElementById("profit");
+  if(!document.getElementById("autoEstimate").checked){
+    profitInput.value="";
+  }
   computeBase();
 });
+
 document.getElementById("sliderBon").addEventListener("input",updateScenario);
 document.getElementById("sliderCr").addEventListener("input",updateScenario);
 document.querySelectorAll('input[type="range"]').forEach(slider=>{
   slider.addEventListener("dblclick",()=>{if(slider.dataset.center){slider.value=slider.dataset.center;updateScenario();}});
 });
-document.getElementById("embedLink").addEventListener("click",e=>{e.preventDefault();document.getElementById("overlay").style.display="flex";});
-document.getElementById("closeOverlay").addEventListener("click",()=>{document.getElementById("overlay").style.display="none";});
 
-// Initial
-computeBase();
+document.getElementById("embedLink").addEventListener("click",e=>{
+  e.preventDefault();
+  document.getElementById("overlay").style.display="flex";
+});
+document.getElementById("closeOverlay").addEventListener("click",()=>{document.getElementById("overlay").style.display="none";});
 </script>
 
 </body>
