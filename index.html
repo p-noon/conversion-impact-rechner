@@ -270,7 +270,7 @@ document.getElementById("closeOverlay").addEventListener("click",()=>{
   document.getElementById("overlay").style.display="none";
 });
 
- // ---------- Inline-Edit für Bon & CR (stabil & synchron) ----------
+ // ---------- Inline-Edit für Bon & CR (perfekt synchron) ----------
 function makeEditable(spanId, sliderId, factor = 1, decimals = 2, onCommit) {
   const span = document.getElementById(spanId);
   const slider = document.getElementById(sliderId);
@@ -301,14 +301,14 @@ function makeEditable(spanId, sliderId, factor = 1, decimals = 2, onCommit) {
       let val = parseFloat(input.value.replace(",", "."));
       if (!isFinite(val)) val = parseFloat(current);
 
-      // Update Slider-Wert korrekt im Verhältnis
-      slider.value = Math.round(val * factor);
-
-      // Callback: Szenario neu berechnen oder Base aktualisieren
-      if (typeof onCommit === "function") onCommit(val);
+      // Slider korrekt synchronisieren
+      slider.value = val * factor;
 
       // UI zurücksetzen
       input.replaceWith(span);
+
+      // Falls Basiswert vorhanden -> Neuberechnung triggern
+      if (typeof onCommit === "function") onCommit(val);
       updateScenario();
     };
 
