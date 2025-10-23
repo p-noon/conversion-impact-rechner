@@ -269,6 +269,52 @@ document.getElementById("embedLink").addEventListener("click",e=>{
 document.getElementById("closeOverlay").addEventListener("click",()=>{
   document.getElementById("overlay").style.display="none";
 });
+
+  // ---------- Inline-Edit für Bon & CR ----------
+function makeEditable(spanId, sliderId, factor = 1, decimals = 2) {
+  const span = document.getElementById(spanId);
+  const slider = document.getElementById(sliderId);
+
+  span.style.cursor = "text";
+  span.title = "Klicken zum Bearbeiten";
+
+  span.addEventListener("click", () => {
+    const current = span.textContent.replace(/\./g, "").replace(",", ".");
+    const input = document.createElement("input");
+    input.type = "text";
+    input.value = parseFloat(current).toFixed(decimals).replace(".", ",");
+    input.style.width = "4.5em";
+    input.style.textAlign = "right";
+    input.style.border = "none";
+    input.style.background = "transparent";
+    input.style.color = "#0071e3";
+    input.style.fontWeight = "700";
+    input.style.fontSize = "1rem";
+    input.style.outline = "none";
+    input.style.fontFamily = "inherit";
+
+    span.replaceWith(input);
+    input.focus();
+    input.select();
+
+    const commit = () => {
+      let val = parseFloat(input.value.replace(",", "."));
+      if (!isFinite(val)) val = parseFloat(current);
+      slider.value = val * factor;
+      updateScenario();
+      input.replaceWith(span);
+    };
+
+    input.addEventListener("blur", commit);
+    input.addEventListener("keydown", e => {
+      if (e.key === "Enter") commit();
+      if (e.key === "Escape") input.replaceWith(span);
+    });
+  });
+}
+
+makeEditable("bonValue", "sliderBon", 100, 2);
+makeEditable("crValue", "sliderCr", 1, 2);
 </script>
 
 </body>
