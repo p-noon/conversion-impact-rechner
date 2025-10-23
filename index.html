@@ -270,7 +270,7 @@ document.getElementById("closeOverlay").addEventListener("click",()=>{
   document.getElementById("overlay").style.display="none";
 });
 
- // ---------- Inline-Edit für Bon & CR (perfekt synchron) ----------
+ // ---------- Inline-Edit für Bon & CR (synchron & robust) ----------
 function makeEditable(spanId, sliderId, factor = 1, decimals = 2, onCommit) {
   const span = document.getElementById(spanId);
   const slider = document.getElementById(sliderId);
@@ -282,7 +282,7 @@ function makeEditable(spanId, sliderId, factor = 1, decimals = 2, onCommit) {
     const current = span.textContent.replace(/\./g, "").replace(",", ".");
     const input = document.createElement("input");
     input.type = "text";
-    input.value = parseFloat(current).toFixed(decimals).replace(".", ",");
+    input.value = (isFinite(parseFloat(current)) ? parseFloat(current).toFixed(decimals) : "").replace(".", ",");
     input.style.width = "4.5em";
     input.style.textAlign = "right";
     input.style.border = "none";
@@ -299,16 +299,25 @@ function makeEditable(spanId, sliderId, factor = 1, decimals = 2, onCommit) {
 
     const commit = () => {
       let val = parseFloat(input.value.replace(",", "."));
-      if (!isFinite(val)) val = parseFloat(current);
+      if (!isFinite(val)) val = parseFloat(current) || 0;
 
-      // Slider korrekt synchronisieren
-      slider.value = val * factor;
+      // set slider value using same scale as other code
+      // e.g. for bon: factor = 100 (cents), for cr: factor = 1 (percent value)
+      slider.value = Math.round(val * factor);
+      // make reset target current value
+      slider.dataset.center = slider.value;
 
-      // UI zurücksetzen
+      // replace UI element back to span
       input.replaceWith(span);
 
-      // Falls Basiswert vorhanden -> Neuberechnung triggern
-      if (typeof onCommit === "function") onCommit(val);
+      // Important: recompute full base state so profit calc uses consistent numbers
+      // If onCommit provided, allow it to adjust base before computeBase runs
+      if (typeof onCommit === "function") {
+        try { onCommit(val); } catch(e) { /* ignore */ }
+      }
+
+      // recompute base (parses all inputs) then update scenario
+      computeBase();
       updateScenario();
     };
 
@@ -320,17 +329,17 @@ function makeEditable(spanId, sliderId, factor = 1, decimals = 2, onCommit) {
   });
 }
 
-// Bon
+// Bon: factor 100 (slider in cents)
 makeEditable("bonValue", "sliderBon", 100, 2, (val) => {
-  if (!base.totalRevenue) return;
-  base.bonGross = val;
-  base.bonNet = val / 1.19;
+  // write to the bonGross input in the same visual format so computeBase reads it
+  // use German decimal comma for the visible input
+  document.getElementById("bonGross").value = (val).toString().replace(".", ",");
 });
 
-// Conversion Rate
+// CR: factor 1 (slider stores percent * 1)
 makeEditable("crValue", "sliderCr", 1, 2, (val) => {
-  if (!base.totalRevenue) return;
-  base.conversionRate = val / 100;
+  // write to the conversionRate input so computeBase reads it
+  document.getElementById("conversionRate").value = (val).toString().replace(".", ",");
 });
 </script>
 
