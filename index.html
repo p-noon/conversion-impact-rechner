@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Umsatz- & Ertrags-Simulator</title>
+<title>Umsatz & Ertrag Simulator</title>
 <style>
 body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text",Roboto,Arial,sans-serif;background:#f4f4f6;padding:20px}
 .simulator{max-width:950px;margin:40px auto;background:#fff;border-radius:24px;box-shadow:0 8px 20px rgba(0,0,0,0.08);padding:28px;color:#111}
@@ -48,8 +48,8 @@ footer a:hover{text-decoration:underline}
 <body>
 
 <div class="simulator">
-  <h1>Umsatz- & Ertrags-Simulator</h1>
-  <p class="subtitle">Simuliere, wie sich Änderungen bei Bon und Conversion Rate auf Umsatz & Ertrag auswirken.</p>
+  <h1>Umsatz & Ertrag Simulator</h1>
+  <p class="subtitle">Simuliere, wie sich Änderungen bei durchschnittlichem Bestellwert und Conversion Rate auf deinen Umsatz & Ertrag auswirken. <br> 1. Schritt: Aktuelle Daten deines Onlineshops eintragen. <br> 2. Schirtt: Zukünftigen Umsatz und Ertrag simulieren, wenn sich Bestellwert und Conversion Rate ändern.</p>
 
   <div class="input-grid">
     <div class="column">
@@ -57,7 +57,7 @@ footer a:hover{text-decoration:underline}
       <input id="totalRevenue" type="text" placeholder="z. B. 120.000">
       <label>Conversion Rate (%)</label>
       <input id="conversionRate" type="text" placeholder="z. B. 2,5">
-      <label>Ertrag (optional, EUR)</label>
+      <label>Gesamtertrag (optional, EUR)</label>
       <input id="profit" type="text" placeholder="z. B. 20.000">
       <div class="radio-wrap">
         <input type="checkbox" id="autoEstimate">
@@ -67,20 +67,20 @@ footer a:hover{text-decoration:underline}
     </div>
 
     <div class="column">
-      <label>Bon (Brutto, EUR)</label>
+      <label>Ø Bestellwert (Brutto, EUR)</label>
       <input id="bonGross" type="text" placeholder="z. B. 60">
-      <label>Bon (Netto, automatisch)</label>
+      <label>Ø Bestellwert (Netto, automatisch)</label>
       <input id="bonNet" type="text" readonly>
-      <label>Herstellungskosten (EUR)</label>
+      <label> Ø Herstellungskosten (EUR)</label>
       <input id="productionCost" type="text" placeholder="z. B. 20">
-      <label>Versand (EUR)</label>
+      <label> Ø Versandkosten (EUR)</label>
       <input id="shippingCost" type="text" placeholder="z. B. 5">
     </div>
   </div>
 
   <div class="slider-section">
     <div class="slider-wrapper">
-      <span class="slider-label-inline">Neuer Bon:</span>
+      <span class="slider-label-inline">Neuer Ø Bestellwert:</span>
       <span id="bonValue" class="slider-value">–</span>
       <span class="reset-btn" id="resetBon">⟲</span>
       <input id="sliderBon" type="range" min="0" max="20000" step="1">
@@ -95,13 +95,13 @@ footer a:hover{text-decoration:underline}
 
     <div class="result-grid">
       <div class="result-card">
-        <p>Zusatz-Umsatz</p>
+        <p>Zusätzlicher Umsatz</p>
         <h2 id="deltaRevenueAbs">–</h2>
         <div id="deltaRevenueRel" class="delta"></div>
         <div id="newRevenueTotal" class="subtext"></div>
       </div>
       <div class="result-card">
-        <p>Zusatz-Ertrag</p>
+        <p>Zusätzlicher Ertrag</p>
         <h2 id="deltaProfitAbs">–</h2>
         <div id="deltaProfitRel" class="delta"></div>
         <div id="newProfitTotal" class="subtext"></div>
